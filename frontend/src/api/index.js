@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const api = axios.create({ baseURL: "https://bsquarexxx.netlify.app/home/api", timeout: 15000 });
+const api = axios.create({ baseURL: "https://your-render-backend.onrender.com/api", timeout: 15000 });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
