@@ -12,7 +12,7 @@ app.set("trust proxy", 1);
   app.use(cors({
   origin: [
     "http://localhost:3000",
-    "https://bsquarexxx.netlify.app"
+    "https://astonishing-arithmetic-d290b1.netlify.app"
   ],
   credentials: true
 }));

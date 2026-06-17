@@ -448,7 +448,7 @@ const [showLogoCropper, setShowLogoCropper] = useState(false);
         marginBottom: 22
       }}
     >
-      ✓ I'm a Member of BSquare
+      ✓ I'm a Verified Member of BSquare
     </div>
 
     <button
