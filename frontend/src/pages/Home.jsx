@@ -67,9 +67,22 @@ export default function Home() {
 
       {/* HERO */}
       <div style={{ position: "relative", overflow: "hidden", background: "#fff" }}>
-        <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: "44%", background: "linear-gradient(135deg,#EEF6FF,#DCEEff)", clipPath: "polygon(8% 0,100% 0,100% 100%,0% 100%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: window.innerWidth < 768 ? "100%" : "44%", background: "linear-gradient(135deg,#EEF6FF,#DCEEff)", clipPath: "polygon(8% 0,100% 0,100% 100%,0% 100%)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 20% 80%, rgba(24,120,200,.05) 0%, transparent 50%)", pointerEvents: "none" }} />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "clamp(24px,4vw,64px)", alignItems: "center", padding: "clamp(52px,7vw,88px) clamp(16px,3.5vw,56px)", maxWidth: 1140, margin: "0 auto", position: "relative", zIndex: 1, flexWrap: "wrap" }}>
+        <div
+  style={{
+    display: "grid",
+    gridTemplateColumns:
+      window.innerWidth < 768 ? "1fr" : "1fr auto",
+    gap: "clamp(24px,4vw,64px)",
+    alignItems: "center",
+    padding: "clamp(52px,7vw,88px) clamp(16px,3.5vw,56px)",
+    maxWidth: 1140,
+    margin: "0 auto",
+    position: "relative",
+    zIndex: 1,
+  }}
+>
           {/* Left */}
           <div style={{ maxWidth: 560, animation: "fadeUp .7s .1s both" }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "7px 14px", background: "#EEF6FF", border: "1.5px solid rgba(24,120,200,.2)", borderRadius: 24, marginBottom: 24 }}>
@@ -112,7 +125,7 @@ export default function Home() {
           </div>
 
           {/* Login card */}
-          <div style={{ background: "#fff", borderRadius: 24, boxShadow: "0 8px 48px rgba(10,22,40,.1),0 2px 8px rgba(24,120,200,.08)", padding: "clamp(24px,3vw,36px)", width: "clamp(280px,28vw,330px)", flexShrink: 0, position: "relative", overflow: "hidden", animation: "fadeUp .6s .3s both" }}>
+          <div style={{ background: "#fff", borderRadius: 24, boxShadow: "0 8px 48px rgba(10,22,40,.1),0 2px 8px rgba(24,120,200,.08)", padding: "clamp(24px,3vw,36px)", width: "100%",maxWidth:"330px", flexShrink: 0, position: "relative", overflow: "hidden", animation: "fadeUp .6s .3s both" }}>
             <div style={{ position: "absolute", top: -60, right: -60, width: 200, height: 200, background: "#EEF6FF", borderRadius: "50%", pointerEvents: "none" }} />
             <div style={{ position: "relative", zIndex: 1 }}>
               <div style={{ fontSize: 22, fontWeight: 800, color: "#0A1628", letterSpacing: "-.5px", marginBottom: 4 }}>Welcome back.</div>
