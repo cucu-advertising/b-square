@@ -1,5 +1,5 @@
 import Cropper from "react-easy-crop";
-import { useState } from "react";
+
 
 export default function ImageCropModal({
   image,
