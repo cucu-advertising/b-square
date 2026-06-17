@@ -14,7 +14,19 @@ router.get("/nearby", authenticate, async (req, res) => {
     let filterSQL = "";
     if (industry) { params.push(`%${industry.toLowerCase()}%`); filterSQL = ` AND LOWER(u.industry) LIKE $${params.length}`; }
     const sql = `
-      SELECT u.id, u.name, u.industry, u.bio, u.city, u.lat, u.lng,
+      SELECT
+  u.id,
+  u.name,
+  u.company_name,
+  u.company_logo,
+  u.profile_photo,
+  u.headline,
+  u.share_slug,
+  u.industry,
+  u.bio,
+  u.city,
+  u.lat,
+  u.lng,
         u.verification_type, u.verification_status,
         u.founder_name, u.looking_for, u.business_goal, u.company_size,
         u.revenue_range, u.business_interests, u.year_founded,
@@ -47,7 +59,18 @@ router.get("/:userId", authenticate, async (req, res) => {
   const { userId } = req.params;
   try {
     const { rows } = await db.query(
-      `SELECT u.id, u.name, u.industry, u.bio, u.city, u.verification_type,
+      `SELECT SELECT
+  u.id,
+  u.name,
+  u.company_name,
+  u.company_logo,
+  u.profile_photo,
+  u.headline,
+  u.share_slug,
+  u.industry,
+  u.bio,
+  u.city,
+  u.verification_type,
         u.founder_name, u.looking_for, u.business_goal, u.company_size,
         u.revenue_range, u.business_interests, u.year_founded, u.created_at,
         CASE WHEN c.id IS NOT NULL THEN true ELSE false END AS is_connected,

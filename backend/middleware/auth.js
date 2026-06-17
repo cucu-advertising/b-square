@@ -9,10 +9,42 @@ const authenticate = async (req, res, next) => {
     const token = auth.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const { rows } = await db.query(
-      `SELECT id, name, email, phone, industry, bio,
-        verification_type, verification_status, verification_notes,
-        is_admin, lat, lng, city, is_active, onboarding_done
-       FROM users WHERE id = $1`,
+      `SELECT
+  id,
+  name,
+  email,
+  phone,
+  industry,
+  bio,
+
+  company_name,
+  headline,
+  company_logo,
+  profile_photo,
+  share_slug,
+
+  verification_type,
+  verification_status,
+  verification_notes,
+
+  is_admin,
+  lat,
+  lng,
+  city,
+  is_active,
+
+  onboarding_done,
+
+  founder_name,
+  looking_for,
+  business_goal,
+  company_size,
+  revenue_range,
+  business_interests,
+  year_founded
+
+FROM users
+WHERE id = $1`,
       [decoded.userId]
     );
     if (!rows[0]) return res.status(401).json({ error: "User not found" });

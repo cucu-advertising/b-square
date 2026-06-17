@@ -421,21 +421,90 @@ export default function Nearby() {
                     <div className="sw-pass" style={{ position: "absolute", top: 18, left: 14, opacity: 0, fontSize: 16, fontWeight: 800, padding: "6px 12px", borderRadius: 10, border: "2.5px solid #EF4444", color: "#EF4444", zIndex: 20, pointerEvents: "none", letterSpacing: "1px", transform: "rotate(-10deg)", transition: "opacity .1s" }}>PASS</div>
                     <div className="sw-conn" style={{ position: "absolute", top: 18, right: 14, opacity: 0, fontSize: 16, fontWeight: 800, padding: "6px 12px", borderRadius: 10, border: "2.5px solid #1878C8", color: "#1878C8", zIndex: 20, pointerEvents: "none", letterSpacing: "1px", transform: "rotate(10deg)", transition: "opacity .1s" }}>CONNECT</div>
                     {/* Card header */}
-                    <div style={{ height: 200, background: `linear-gradient(160deg,${getColor(cu.name)}cc,${getColor(cu.name)})`, position: "relative", display: "flex", alignItems: "flex-end", padding: "14px 16px" }}>
+                    <div
+  style={{
+    height: 200,
+    background: cu.company_logo
+      ? `url(${cu.company_logo}) center/cover no-repeat`
+      : `linear-gradient(160deg,${getColor(cu.name)}cc,${getColor(cu.name)})`,
+    position: "relative",
+    display: "flex",
+    alignItems: "flex-end",
+    padding: "14px 16px",
+  }}
+>
                       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,transparent 30%,rgba(0,0,0,.5) 100%)" }} />
                       {cu.distance_km && <div style={{ position: "absolute", top: 12, left: 12, background: "rgba(255,255,255,.9)", backdropFilter: "blur(8px)", padding: "4px 10px", borderRadius: 20, fontSize: 9, fontWeight: 700, color: "#0A1628" }}>📍 {cu.distance_km} km</div>}
                       <div style={{ position: "absolute", top: 12, right: 12 }}><VerBadge type={cu.verification_type} /></div>
-                      <div style={{ width: 56, height: 56, borderRadius: 16, border: "2.5px solid rgba(255,255,255,.4)", background: "rgba(255,255,255,.15)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800, color: "#fff", position: "relative", zIndex: 1 }}>
-                        {initials(cu.name)}
-                      </div>
+                      <div
+  style={{
+    width: 72,
+    height: 72,
+    borderRadius: "50%",
+    overflow: "hidden",
+    border: "3px solid rgba(255,255,255,.85)",
+    background: "#fff",
+    position: "relative",
+    zIndex: 1,
+  }}
+>
+  {cu.profile_photo ? (
+    <img
+      src={cu.profile_photo}
+      alt=""
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+      }}
+    />
+  ) : (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 20,
+        fontWeight: 800,
+        color: "#1878C8",
+      }}
+    >
+      {initials(cu.name)}
+    </div>
+  )}
+</div>
                     </div>
                     {/* Card body */}
                     <div style={{ padding: "14px 16px 16px", background: "#fff" }}>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: "#0A1628", letterSpacing: "-.4px", marginBottom: 5 }}>{cu.name}</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: "#0A1628", letterSpacing: "-.4px", marginBottom: 5 }}>{cu.company_name || cu.name}</div>
+                      <div
+  style={{
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#1878C8",
+    marginBottom: 8,
+  }}
+>
+  ✓ I'm a Member of BSquare
+</div>
                       <div style={{ display: "flex", gap: 7, alignItems: "center", marginBottom: 9, flexWrap: "wrap" }}>
                         {cu.industry && <span style={{ fontSize: 10, fontWeight: 600, color: "#1878C8", background: "#EEF6FF", padding: "3px 9px", borderRadius: 20, border: "1px solid #C2DAFF" }}>{cu.industry}</span>}
                         {cu.city && <span style={{ fontSize: 10, color: "#8AACC8", fontWeight: 500 }}>{cu.city}</span>}
                       </div>
+                      {cu.headline && (
+  <div
+    style={{
+      fontSize: 12,
+      color: "#4B6280",
+      marginBottom: 10,
+      fontStyle: "italic",
+    }}
+  >
+    {cu.headline}
+  </div>
+)}
                       {cu.bio && <p style={{ fontSize: 12, color: "#4B6280", lineHeight: 1.55, marginBottom: 14, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{cu.bio}</p>}
                       {/* Action buttons */}
                       <div style={{ display: "flex", gap: 12, alignItems: "center", justifyContent: "center", paddingTop: 4 }}>

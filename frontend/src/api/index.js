@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const api = axios.create({ baseURL: "https://bsquare-backend.onrender.com/api", timeout: 15000 });
+const api = axios.create({ baseURL: "http://localhost:5000/api", timeout: 15000 });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
@@ -87,6 +87,11 @@ export default api;
 
 export const onboardingAPI = {
   save: (data) => api.put("/auth/onboarding", data),
+};
+
+export const profileAPI = {
+  updateCard: (data) =>
+    api.put("/auth/profile-card", data),
 };
 
 export const eventsAPI = {

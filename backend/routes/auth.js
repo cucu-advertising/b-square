@@ -117,6 +117,11 @@ router.post("/login",
         message: "Login successful",
         user: {
           id: user.id, name: user.name, email: user.email, phone: user.phone,
+          company_name: user.company_name,
+headline: user.headline,
+company_logo: user.company_logo,
+profile_photo: user.profile_photo,
+share_slug: user.share_slug,
           industry: user.industry, bio: user.bio,
           verification_type: user.verification_type,
           verification_status: user.verification_status,
@@ -215,19 +220,114 @@ module.exports = router;
 
 // ─── SAVE ONBOARDING ──────────────────────────────────────────────────────────
 router.put("/onboarding", authenticate, async (req, res) => {
-  const { founderName, lookingFor, businessGoal, companySize, revenueRange, businessInterests, yearFounded } = req.body;
+  const {
+    founderName,
+    lookingFor,
+    businessGoal,
+    companySize,
+    revenueRange,
+    businessInterests,
+    yearFounded,
+
+    companyName,
+    headline,
+    companyLogo,
+    profilePhoto
+  } = req.body;
+
   try {
+    const shareSlug =
+      companyName
+        ?.toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "") +
+      "-" +
+      req.user.id.slice(0, 6);
+
     await db.query(
       `UPDATE users SET
-        founder_name=$1, looking_for=$2, business_goal=$3,
-        company_size=$4, revenue_range=$5, business_interests=$6,
-        year_founded=$7, onboarding_done=true
-       WHERE id=$8`,
-      [founderName||null, lookingFor||[], businessGoal||null, companySize||null, revenueRange||null, businessInterests||[], yearFounded||null, req.user.id]
+        founder_name=$1,
+        looking_for=$2,
+        business_goal=$3,
+        company_size=$4,
+        revenue_range=$5,
+        business_interests=$6,
+        year_founded=$7,
+
+        company_name=$8,
+        headline=$9,
+        company_logo=$10,
+        profile_photo=$11,
+        share_slug=$12,
+
+        onboarding_done=true
+
+       WHERE id=$13`,
+      [
+        founderName || null,
+        lookingFor || [],
+        businessGoal || null,
+        companySize || null,
+        revenueRange || null,
+        businessInterests || [],
+        yearFounded || null,
+
+        companyName || null,
+        headline || "I'm a Member of BSquare",
+        companyLogo || null,
+        profilePhoto || null,
+        shareSlug,
+
+        req.user.id
+      ]
     );
-    return res.json({ message: "Profile updated", onboardingDone: true });
+
+    return res.json({
+      message: "Profile updated",
+      onboardingDone: true
+    });
   } catch (err) {
     console.error("Onboarding error:", err.message);
-    return res.status(500).json({ error: "Failed to save onboarding" });
+    return res.status(500).json({
+      error: "Failed to save onboarding"
+    });
+  }
+}); 
+
+router.put("/profile-card", authenticate, async (req, res) => {
+  const {
+    companyName,
+    headline,
+    companyLogo,
+    profilePhoto
+  } = req.body;
+
+  try {
+    await db.query(
+      `UPDATE users
+       SET company_name=$1,
+           headline=$2,
+           company_logo=$3,
+           profile_photo=$4
+       WHERE id=$5`,
+      [
+        companyName || null,
+        headline || null,
+        companyLogo || null,
+        profilePhoto || null,
+        req.user.id
+      ]
+    );
+
+    return res.json({
+      message: "Business card updated"
+    });
+
+  } catch (err) {
+    console.error("Profile card error:", err.message);
+
+    return res.status(500).json({
+      error: "Failed to update business card"
+    });
   }
 });

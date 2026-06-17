@@ -24,9 +24,19 @@ export default function Onboarding() {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    founderName: "", lookingFor: [], businessGoal: "",
-    companySize: "", revenueRange: "", businessInterests: [], yearFounded: "",
-  });
+  founderName: "",
+  lookingFor: [],
+  businessGoal: "",
+  companySize: "",
+  revenueRange: "",
+  businessInterests: [],
+  yearFounded: "",
+
+  companyName: "",
+  headline: "I'm a Member of BSquare",
+  companyLogo: "",
+  profilePhoto: "",
+});
 
   const toggle = (key, val) => setForm(p => ({
     ...p, [key]: p[key].includes(val) ? p[key].filter(x=>x!==val) : [...p[key], val]
@@ -95,6 +105,133 @@ export default function Onboarding() {
                   onFocus={e=>{e.target.style.borderColor="#1251A3";e.target.style.background="#fff";e.target.style.boxShadow="0 0 0 3px rgba(18,81,163,0.1)";}}
                   onBlur={e=>{e.target.style.borderColor="#C8D9F0";e.target.style.background="#F8FAFF";e.target.style.boxShadow="none";}} />
               </div>
+              <div>
+  <label style={{
+    fontSize:11,
+    fontWeight:700,
+    color:"#1251A3",
+    display:"block",
+    marginBottom:6,
+    textTransform:"uppercase",
+    letterSpacing:"0.7px"
+  }}>
+    Company Name
+  </label>
+
+  <input
+    value={form.companyName}
+    onChange={e=>setForm(p=>({...p,companyName:e.target.value}))}
+    placeholder="e.g. Ravi Textiles"
+    style={{
+      width:"100%",
+      padding:"11px 13px",
+      border:"1.5px solid #C8D9F0",
+      borderRadius:9,
+      fontSize:13.5,
+      background:"#F8FAFF",
+      color:"#0A1628",
+      fontFamily:"inherit"
+    }}
+  />
+</div>
+
+<div>
+  <label style={{
+    fontSize:11,
+    fontWeight:700,
+    color:"#1251A3",
+    display:"block",
+    marginBottom:6,
+    textTransform:"uppercase",
+    letterSpacing:"0.7px"
+  }}>
+    Profile Headline
+  </label>
+
+  <input
+    value={form.headline}
+    onChange={e=>setForm(p=>({...p,headline:e.target.value}))}
+    placeholder="I'm a Member of BSquare"
+    style={{
+      width:"100%",
+      padding:"11px 13px",
+      border:"1.5px solid #C8D9F0",
+      borderRadius:9,
+      fontSize:13.5,
+      background:"#F8FAFF",
+      color:"#0A1628",
+      fontFamily:"inherit"
+    }}
+  />
+</div>
+
+<div>
+  <label style={{
+    fontSize:11,
+    fontWeight:700,
+    color:"#1251A3",
+    display:"block",
+    marginBottom:6,
+    textTransform:"uppercase",
+    letterSpacing:"0.7px"
+  }}>
+    Company Logo
+  </label>
+
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e)=>{
+      const file=e.target.files[0];
+      if(!file) return;
+
+      const reader=new FileReader();
+
+      reader.onload=()=>{
+        setForm(p=>({
+          ...p,
+          companyLogo: reader.result
+        }));
+      };
+
+      reader.readAsDataURL(file);
+    }}
+  />
+</div>
+
+<div>
+  <label style={{
+    fontSize:11,
+    fontWeight:700,
+    color:"#1251A3",
+    display:"block",
+    marginBottom:6,
+    textTransform:"uppercase",
+    letterSpacing:"0.7px"
+  }}>
+    Profile Photo
+  </label>
+
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e)=>{
+      const file=e.target.files[0];
+      if(!file) return;
+
+      const reader=new FileReader();
+
+      reader.onload=()=>{
+        setForm(p=>({
+          ...p,
+          profilePhoto: reader.result
+        }));
+      };
+
+      reader.readAsDataURL(file);
+    }}
+  />
+</div>
               <div>
                 <label style={{ fontSize:11, fontWeight:700, color:"#1251A3", display:"block", marginBottom:8, textTransform:"uppercase", letterSpacing:"0.7px" }}>Year Founded</label>
                 <select value={form.yearFounded} onChange={e=>sel("yearFounded",e.target.value)}
