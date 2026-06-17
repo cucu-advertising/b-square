@@ -161,16 +161,41 @@ export default function Nearby() {
     );
   };
 
-  const sendRequest = async u => {
-    setPending(p => new Set([...p, u.id]));
-    try {
-      const { data } = await connectionsAPI.sendRequest(u.id);
-      toast.success(data.message);
-      setUsers(prev => prev.map(x => x.id === u.id ? { ...x, connection_status: data.status === "connected" ? "connected" : "request_sent" } : x));
-      if (data.status === "connected") fetchConnections();
-    } catch (err) { toast.error(err.response?.data?.error || "Failed"); }
-    finally { setPending(p => { const n = new Set(p); n.delete(u.id); return n; }); }
-  };
+  const sendRequest = useCallback(async (u) => {
+  setPending((p) => new Set([...p, u.id]));
+
+  try {
+    const { data } = await connectionsAPI.sendRequest(u.id);
+
+    toast.success(data.message);
+
+    setUsers((prev) =>
+      prev.map((x) =>
+        x.id === u.id
+          ? {
+              ...x,
+              connection_status:
+                data.status === "connected"
+                  ? "connected"
+                  : "request_sent",
+            }
+          : x
+      )
+    );
+
+    if (data.status === "connected") {
+      fetchConnections();
+    }
+  } catch (err) {
+    toast.error(err.response?.data?.error || "Failed");
+  } finally {
+    setPending((p) => {
+      const n = new Set(p);
+      n.delete(u.id);
+      return n;
+    });
+  }
+}, [fetchConnections]);
 
   const doSwipe = useCallback((dir, u) => {
     if (!u) return;
