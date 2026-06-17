@@ -9,7 +9,13 @@ const db = require("./db");
 const app = express();
 app.use(helmet());
 app.set("trust proxy", 1);
-  app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:3000", credentials: true }));
+  app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    "https://bsquarexxx.netlify.app"
+  ],
+  credentials: true
+}));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 500 }));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
