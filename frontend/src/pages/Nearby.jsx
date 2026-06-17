@@ -180,7 +180,7 @@ export default function Nearby() {
       if (dir === "right" && u.connection_status === "none") sendRequest(u);
       setIdx(i => i + 1);
     }, 380);
-  }, []);
+  }, [sendRequest]);
 
   const startDrag = e => {
     const x = e.touches ? e.touches[0].clientX : e.clientX;
