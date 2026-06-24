@@ -1,10 +1,14 @@
 import axios from "axios";
 
-const api = axios.create({ baseURL: "https://your-render-backend.onrender.com/api", timeout: 15000 });
+const api = axios.create({ baseURL: "https://bsquare-backend.onrender.com/api", timeout: 15000 });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
   return config;
 });
 
