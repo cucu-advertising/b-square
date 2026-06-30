@@ -82,7 +82,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_users_updated BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER trg_conn_req_updated BEFORE UPDATE ON connection_requests FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
--- Onboarding profile fields (run this ALTER on existing DB)
 ALTER TABLE users ADD COLUMN IF NOT EXISTS founder_name VARCHAR(200);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS looking_for TEXT[];
 ALTER TABLE users ADD COLUMN IF NOT EXISTS business_goal VARCHAR(100);
@@ -92,7 +91,6 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS business_interests TEXT[];
 ALTER TABLE users ADD COLUMN IF NOT EXISTS year_founded VARCHAR(10);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_done BOOLEAN DEFAULT FALSE;
 
--- Events: businesses can post events/promotions visible to everyone (run this on existing DB)
 CREATE TABLE IF NOT EXISTS events (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
