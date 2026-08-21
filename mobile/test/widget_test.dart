@@ -14,7 +14,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Sign in with Apple'), findsOneWidget);
+    expect(find.text('Sign in with LinkedIn'), findsOneWidget);
     expect(find.text('More options'), findsOneWidget);
   });
 }

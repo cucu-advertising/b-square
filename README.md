@@ -1,170 +1,214 @@
-# B Square — Full Stack Setup Guide
+# B Square — Mobile Setup Guide
 
 ## What This App Does
 B Square is a B2B networking platform where verified business professionals
-connect with others nearby. Every user is manually verified before being
-allowed in — no fake accounts.
+connect with others nearby. Every user is verified before being allowed in —
+no fake accounts.
+
+The Flutter app in `mobile/` talks to the FastAPI service in `backend-mobile/`
+(MongoDB, port 5001).
 
 ---
 
-## PAGE BY PAGE FLOW
+## SCREEN BY SCREEN FLOW
 
-### 1. /register — Create Account (3 steps)
-**Step 1 — Business Info**
-- Full name, business name, industry, city, bio
-- Browser asks for GPS location immediately (live tracking starts here)
+Flutter app in `mobile/`. All screens talk to `backend-mobile` on port 5001.
 
-**Step 2 — Verification (choose one of 3)**
-- DIN: Submit 8-digit Director Identification Number + your name as on MCA.
-  Admin manually checks at mca.gov.in before approving.
-- Business Succession: For sons/family who inherited a business.
-  Submit previous owner's DIN, your new DIN (if obtained), describe the
-  board resolution or succession document. Admin reviews manually.
-- LinkedIn: For freelancers/consultants without a DIN.
-  Admin reviews your LinkedIn profile for genuine business activity.
+### 1. Welcome
+- Brand header on the auth background
+- Sign in with LinkedIn (placeholder for now)
+- More options → Create account or Sign in with email
 
-**Step 3 — Account Details**
-- Email (required), Phone (required), Password, Confirm Password
-- On submit → account created with "pending" status
-- User sees "Application submitted!" screen
-- Cannot log in until admin approves
-
-### 2. /login — Sign In
+### 2. Sign in
 - Email + password
-- If pending → error message shown
-- If rejected → rejection reason shown
-- If approved → lands on Nearby page
+- Calls `POST /api/v1/auth/login`
+- On success → Home (Discover tab)
+- Wrong email / password → error shown on the form
 
-### 3. / (Nearby) — Discover Businesses
-- Shows all approved verified businesses within your radius (default 10km)
-- Radius slider: drag to expand/shrink
-- Industry filter: type to filter
-- Each card shows: business name, industry, verification type badge, bio, distance
-- Connect button → sends connection request
-- Status updates: "Request Sent", "Connected", "Wants to Connect"
+### 3. Create account (9 steps, shared progress bar)
+Signup state lives in `SignupFlowProvider` (`SignupData`) until the last step,
+then it is sent to the API.
 
-### 4. /connections — Your Connections
-- Lists all accepted connections
-- Contact details (email + phone) only visible after connection is accepted
-- Message button → opens chat modal
-- Remove button → removes connection (can reconnect later)
+**Step 1 — Name**
+- First name, last name
 
-### 5. /requests — Connection Requests
-**Received tab:**
-- Accept → creates connection + auto-sends contact details to both users as system message
-- Decline → declines the request
+**Step 2 — Account**
+- Email, password (min 8), confirm password
 
-**Sent tab:**
-- Shows pending sent requests
-- Cancel → cancels the request
+**Step 3 — Images**
+- Profile photo + company logo
+- Then gallery (up to 4 business photos)
 
-### 6. /profile — My Profile
-- View all your info
-- Edit profile (name, phone, bio, industry)
-- Change password
-- Sign out
+**Step 4 — Verification (choose one of 3)**
+- DIN: 8-digit DIN + director name as on MCA
+- Business Succession: previous DIN, new DIN, succession note
+- LinkedIn: profile URL (`linkedin.com/in/...`)
 
-### 7. /admin — Admin Panel (admin only, visible in navbar)
-**Stats dashboard:**
-- Pending count, Approved Today, Total Approved, Rejected, Total Users
+**Step 5 — Business**
+- Business name, industry, city, bio
 
-**Pending tab:**
-- All users awaiting review
-- DIN users: shows DIN + director name + direct "Verify on MCA ↗" link
-- Succession users: shows prev/new DIN + document description
-- LinkedIn users: shows clickable profile link
-- Approve button → user gets access immediately
-- Reject button → requires reason, shown to user on login attempt
+**Step 6 — About you**
+- Founder name, company name, role, year founded, company size, revenue range
 
-**All Users tab:**
-- Full list of all users with their verification status
+**Step 7 — Business goals**
+- One primary goal (clients, partners, investment, etc.)
 
-### 8. Chat (floating modal)
-- Opens when you click Message on a connection
-- On connection accept → auto system message sent to both users with contact details
-- System messages shown in green bubble
-- Polls for new messages every 4 seconds
-- Send with Enter key or Send button
+**Step 8 — Connect with**
+- Who they want to meet (manufacturers, investors, …)
+
+**Step 9 — Interests**
+- Up to 5 business interests
+- On Next → `POST /api/v1/auth/register` then `PATCH /api/v1/users/me/onboarding`
+- Photos upload via `POST /api/v1/users/me/images`
+- Then “Great start” + profile preview → Home
+
+Duplicate email or DIN returns **409** (including two people registering at once).
+
+### 4. Home — Discover
+- Bottom nav: Discover / Messages / Profile
+- Card stack of other members (no email in the payload)
+- Connect → sends a connection request
+- Pass → hides that profile
+- Open the card → member profile
+- First launch asks for notification permission
+
+### 5. Messages
+**Chats tab:**
+- Conversation list with unread counts
+- Tap → chat thread (connected members only)
+
+**Requests tab:**
+- Received requests: accept / decline
+- Sent request updates (accepted / declined)
+
+**Connections tab:**
+- Accepted connections → open chat or profile
+
+Live updates come from WebSocket `ws://.../api/v1/ws/chat` (`ChatSocket`).
+The socket only notifies (new message / read). Sending still uses REST.
+
+### 6. Profile (own)
+- View own card, stats (connections, views, matches)
+- Edit profile
+- Share profile
+- Sign out (clears tokens)
+
+### 7. Member profile
+- Public profile (email stripped)
+- Recording a view increments their profile-view count
+- Connect / message depending on connection state
+
+### 8. Chat thread
+- Load history, send, mark read
+- New messages refresh over the WebSocket
 
 ---
 
-## LOCATION TRACKING
-- On registration: browser asks permission → GPS coords saved
-- While app is open: watchPosition runs silently, updates location in DB
-- Nearby page: uses your real coordinates to calculate distances in SQL
-- If location denied: city center coordinates used as fallback
+## ARCHITECTURE
+
+```text
+mobile/ (Flutter)                         backend-mobile/ (FastAPI)
+─────────────────                         ─────────────────────────
+screens  →  services  →  ApiClient   →    /api/v1 routers
+models / providers                        services
+theme / widgets                           repositories
+                                          MongoDB (bsquare_mobile)
+```
+
+### Flutter (`mobile/lib/`)
+Screens stay thin. They call services; services call `ApiClient`.
+
+| Layer | What it does |
+| --- | --- |
+| `screens/` | Welcome, signup, home tabs, chat thread, member profile |
+| `services/` | `AuthService`, `ConnectionService`, `ChatService`, `ChatSocket`, `ApiClient`, token storage |
+| `models/` | Signup payload, discover cards, requests, chat |
+| `providers/` | `SignupFlowProvider` — shared 9-step signup state |
+| `config/api_config.dart` | Base URL (Android emulator: `10.0.2.2:5001`) |
+
+### FastAPI (`backend-mobile/app/`)
+Routers handle HTTP. Services own rules. Repositories talk to MongoDB.
+
+| Layer | What it does |
+| --- | --- |
+| `api/v1/` | Auth, users, connections, notifications, messages, health, chat WebSocket |
+| `services/` | Register/login, discover, connect/pass, chat, uploads |
+| `repositories/` | users, requests, connections, conversations, messages, notifications, passes, views |
+| `schemas/` | Request/response models (camelCase, matching Flutter) |
+| `db/connection.py` | Mongo indexes (unique email, unique DIN) |
+| `core/security.py` | JWT access + refresh tokens |
+
+Public discover / other-profile responses **do not include email**.
+The chat WebSocket is notify-only — it does not write messages.
 
 ---
 
 ## SETUP (Windows)
 
 ### Prerequisites
-- Node.js: https://nodejs.org (LTS version)
-- PostgreSQL: already installed on your machine
+- Flutter SDK
+- Python 3.11+
+- MongoDB running locally
 
-### Step 1 — Reset Database (pgAdmin)
-Run in Query Tool on `bsquare` database:
-```sql
-DROP TABLE IF EXISTS messages, refresh_tokens, connections, connection_requests, users CASCADE;
-DROP FUNCTION IF EXISTS update_updated_at CASCADE;
+### Step 1 — Mobile API
 ```
-Then paste and run entire contents of `backend/db/schema.sql`
+cd backend-mobile
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+copy .env.example .env
+python run.py
+```
+API: `http://127.0.0.1:5001`  ·  docs: `http://127.0.0.1:5001/docs`  
+MongoDB default: `mongodb://127.0.0.1:27017/bsquare_mobile`
 
-### Step 2 — Create admin password
-In backend terminal:
+### Step 2 — Flutter app (new terminal)
 ```
-node -e "require('dotenv').config();const b=require('bcryptjs'),db=require('./db');b.hash('Admin@1234',12).then(h=>db.query('INSERT INTO users(name,email,password_hash,phone,verification_type,verification_status,is_admin,city,lat,lng) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',['Admin','admin@bsquare.in',h,'0000000000','admin','approved',true,'Hyderabad',17.385,78.4867]).then(()=>{console.log('Admin created');process.exit()}))"
+cd mobile
+flutter pub get
+flutter run
 ```
-
-### Step 3 — Backend
-```
-cd backend
-npm install
-npm run dev
-```
-
-### Step 4 — Frontend (new terminal)
-```
-cd frontend
-npm install
-npm start
-```
-
-### Admin Login
-- Email: admin@bsquare.in
-- Password: Admin@1234
+Point the app at the API in `mobile/lib/config/api_config.dart`.
+On a physical phone, set `deviceHostOverride` to your PC LAN IP.
 
 ---
 
-## API ENDPOINTS
-POST   /api/auth/register          — Register new user
-POST   /api/auth/login             — Login
-POST   /api/auth/refresh           — Refresh JWT token
-POST   /api/auth/logout            — Logout
-GET    /api/auth/me                — Get current user
-PUT    /api/auth/me                — Update profile
-PUT    /api/auth/location          — Update GPS location
-PUT    /api/auth/change-password   — Change password
+## API ENDPOINTS (FastAPI, prefix `/api/v1`)
 
-GET    /api/users/nearby           — Nearby approved users (with distance)
-GET    /api/users/:id              — Public profile
+GET    /health                         — Service health
 
-POST   /api/connections/request/:id       — Send connection request
-PUT    /api/connections/request/:id/accept — Accept (auto-sends contact details)
-PUT    /api/connections/request/:id/decline — Decline
-DELETE /api/connections/request/:id       — Cancel sent request
-DELETE /api/connections/:id               — Remove connection
-GET    /api/connections                   — List my connections
-GET    /api/connections/requests/received — Received pending requests
-GET    /api/connections/requests/sent     — Sent pending requests
+POST   /auth/register                  — Create account + tokens
+POST   /auth/login                     — Login
+POST   /auth/refresh                   — Refresh JWT
+POST   /auth/logout                    — Logout
+GET    /auth/me                        — Current user (includes email)
 
-POST   /api/messages/:targetId     — Send message
-GET    /api/messages/:targetId     — Get conversation
-GET    /api/messages               — List all conversations
+GET    /users/options                  — Signup dropdowns (industries, cities, …)
+GET    /users/discover                 — Discover cards (email stripped)
+POST   /users/discover/:id/pass        — Pass a profile
+GET    /users/me/stats                 — Own profile stats
+PATCH  /users/me/onboarding            — Save onboarding fields
+PATCH  /users/me/profile               — Edit profile
+POST   /users/me/images                — Upload photo / logo / gallery
+GET    /users/:id                      — Public profile (email stripped)
+POST   /users/:id/view                 — Record a profile view
 
-GET    /api/admin/stats            — Dashboard stats
-GET    /api/admin/pending          — Pending verification queue
-GET    /api/admin/users            — All users
-PUT    /api/admin/users/:id/approve — Approve user
-PUT    /api/admin/users/:id/reject  — Reject user (requires reason)
-PUT    /api/admin/users/:id/deactivate — Deactivate user
+POST   /connections/request/:id        — Send request
+PUT    /connections/request/:id/accept — Accept
+PUT    /connections/request/:id/decline — Decline
+DELETE /connections/request/:id        — Cancel sent request
+GET    /connections/requests/received  — Received pending
+GET    /connections/requests/sent      — Sent pending
+GET    /connections                    — Accepted connections
+
+GET    /notifications                  — Inbox
+GET    /notifications/unread-count     — Unread count
+PUT    /notifications/:id/read         — Mark one read
+PUT    /notifications/read-all         — Mark all read
+
+GET    /messages                       — Conversation list
+GET    /messages/:peerId               — Thread history
+POST   /messages/:peerId               — Send message
+PUT    /messages/:peerId/read          — Mark thread read
+
+WS     /ws/chat?token=...              — Live chat notifications (no writes)
