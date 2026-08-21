@@ -5,3 +5,12 @@ mobile/node_modules/
 .env
 build/
 dist/
+mobile/.dart_tool/
+mobile/build/
+mobile/.flutter-plugins-dependencies
+backend-mobile/venv/
+backend-mobile/__pycache__/
+backend-mobile/**/__pycache__/
+backend-mobile/.pytest_cache/
+backend-mobile/uploads/
+backend-mobile/.env
