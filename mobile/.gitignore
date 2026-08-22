@@ -12,6 +12,15 @@
 .swiftpm/
 migrate_working_dir/
 
+# Leftover JS tooling (this app is Flutter-only)
+node_modules/
+package.json
+package-lock.json
+app.json
+tsconfig.json
+babel.config.js
+.expo/
+
 # IntelliJ related
 *.iml
 *.ipr
