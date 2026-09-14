@@ -2,18 +2,29 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 
-/// Base URL for backend-mobile (port 5001).
+/// Base URL for backend-mobile.
 ///
+/// Release builds (e.g. the APK) always point at the deployed Render
+/// backend. Debug builds still use local network addresses so
+/// `flutter run` keeps working against a backend running on your machine:
 /// - Android emulator: `10.0.2.2` maps to host machine localhost
 /// - iOS simulator / desktop: `localhost`
-/// - Physical device: set [deviceHostOverride] to your PC's LAN IP
+/// - Physical device (debug): set [deviceHostOverride] to your PC's LAN IP
 class ApiConfig {
   static const int port = 5001;
 
-  /// Set to e.g. `192.168.1.42` when testing on a physical phone.
+  /// Production backend, deployed on Render.
+  static const String prodBaseUrl = 'https://b-square-dimb.onrender.com';
+
+  /// Set to e.g. `192.168.1.42` when debugging on a physical phone against
+  /// a local backend instead of the deployed one.
   static const String? deviceHostOverride = null;
 
   static String get baseUrl {
+    // Release builds (including the APK) always use the deployed backend.
+    if (kReleaseMode) {
+      return prodBaseUrl;
+    }
     if (deviceHostOverride != null && deviceHostOverride!.isNotEmpty) {
       return 'http://$deviceHostOverride:$port';
     }
