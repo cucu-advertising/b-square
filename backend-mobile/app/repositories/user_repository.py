@@ -48,6 +48,13 @@ class UserRepository:
         return await cursor.to_list(length=limit)
 
     async def create(self, document: dict[str, Any]) -> dict[str, Any]:
+        # A sparse unique index only skips documents where the field is
+        # entirely ABSENT, not documents where it's present with value null.
+        # Since every signup builds this document with dinNumber defaulted
+        # to None, non-DIN signups (LinkedIn/succession) would otherwise all
+        # collide on a shared null value. Remove the key outright instead.
+        if document.get("dinNumber") is None:
+            document.pop("dinNumber", None)
         result = await self.collection.insert_one(document)
         document["_id"] = result.inserted_id
         return document
