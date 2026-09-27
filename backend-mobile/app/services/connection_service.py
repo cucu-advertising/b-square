@@ -59,15 +59,59 @@ class ConnectionService:
         self.passes = passes
         self.profile_views = profile_views
 
-    async def discover_users(self, user_id: str) -> list[UserResponse]:
+    async def discover_users(
+        self,
+        user_id: str,
+        *,
+        interests: list[str] | None = None,
+        industry: str | None = None,
+    ) -> list[UserResponse]:
         excluded = set(await self.passes.list_target_ids(user_id))
         excluded.update(await self.connections.list_peer_ids(user_id))
         excluded.update(await self.requests.list_related_user_ids(user_id))
+        viewer = await self.users.find_by_id(user_id)
+        if viewer:
+            excluded.update(viewer.get("blockedUserIds") or [])
         users = await self.users.list_discoverable(
             user_id,
             exclude_ids=list(excluded),
+            interests=interests,
+            industry=industry,
         )
         return [serialize_user(user) for user in users]
+
+    async def block_user(self, user_id: str, target_id: str) -> dict[str, str]:
+        if user_id == target_id:
+            raise AppError("You cannot block yourself", 400)
+        target = await self.users.find_by_id(target_id)
+        if not target:
+            raise AppError("User not found", 404)
+        await self.users.block_user(user_id, target_id)
+        return {"message": "User blocked"}
+
+    async def unblock_user(self, user_id: str, target_id: str) -> dict[str, str]:
+        await self.users.unblock_user(user_id, target_id)
+        return {"message": "User unblocked"}
+
+    async def report_user(
+        self, reporter_id: str, target_id: str, reason: str
+    ) -> dict[str, str]:
+        if reporter_id == target_id:
+            raise AppError("You cannot report yourself", 400)
+        target = await self.users.find_by_id(target_id)
+        if not target:
+            raise AppError("User not found", 404)
+        from datetime import datetime
+
+        await self.users.collection.database.reports.insert_one(
+            {
+                "reporterId": reporter_id,
+                "reportedUserId": target_id,
+                "reason": reason.strip()[:1000],
+                "createdAt": datetime.utcnow(),
+            }
+        )
+        return {"message": "Report submitted"}
 
     async def pass_profile(self, from_user_id: str, target_user_id: str) -> dict[str, str]:
         if from_user_id == target_user_id:

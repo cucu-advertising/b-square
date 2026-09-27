@@ -15,6 +15,10 @@ class ConversationRepository:
         a, b = sorted_pair(user_a, user_b)
         return await self.collection.find_one({"userAId": a, "userBId": b})
 
+    async def delete_between(self, user_a: str, user_b: str) -> None:
+        a, b = sorted_pair(user_a, user_b)
+        await self.collection.delete_one({"userAId": a, "userBId": b})
+
     async def get_or_create(self, user_a: str, user_b: str) -> dict[str, Any]:
         existing = await self.find_between(user_a, user_b)
         if existing:

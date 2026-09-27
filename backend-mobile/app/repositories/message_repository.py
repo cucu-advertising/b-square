@@ -16,6 +16,8 @@ class MessageRepository:
         sender_id: str,
         receiver_id: str,
         content: str,
+        attachment_url: str | None = None,
+        attachment_type: str | None = None,
     ) -> dict[str, Any]:
         now = datetime.utcnow()
         document = {
@@ -23,12 +25,20 @@ class MessageRepository:
             "senderId": sender_id,
             "receiverId": receiver_id,
             "content": content,
+            "attachmentUrl": attachment_url,
+            "attachmentType": attachment_type,
             "createdAt": now,
             "readAt": None,
         }
         result = await self.collection.insert_one(document)
         document["_id"] = result.inserted_id
         return document
+
+    async def delete_for_conversation(self, conversation_id: str) -> int:
+        result = await self.collection.delete_many(
+            {"conversationId": conversation_id}
+        )
+        return int(result.deleted_count)
 
     async def list_for_conversation(
         self,

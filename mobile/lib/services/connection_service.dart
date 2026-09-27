@@ -135,6 +135,34 @@ class ConnectionService {
       // Non-blocking analytics.
     }
   }
+
+  Future<void> blockUser(String targetUserId) async {
+    try {
+      await _api.post('/users/$targetUserId/block', authenticated: true);
+    } on ApiException catch (e) {
+      throw ConnectionException(e.message);
+    }
+  }
+
+  Future<void> unblockUser(String targetUserId) async {
+    try {
+      await _api.delete('/users/$targetUserId/block', authenticated: true);
+    } on ApiException catch (e) {
+      throw ConnectionException(e.message);
+    }
+  }
+
+  Future<void> reportUser(String targetUserId, String reason) async {
+    try {
+      await _api.post(
+        '/users/$targetUserId/report',
+        body: {'reason': reason},
+        authenticated: true,
+      );
+    } on ApiException catch (e) {
+      throw ConnectionException(e.message);
+    }
+  }
 }
 
 class ProfileStats {

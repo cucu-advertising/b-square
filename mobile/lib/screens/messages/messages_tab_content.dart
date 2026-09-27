@@ -711,6 +711,7 @@ class _ChatsPane extends StatefulWidget {
 class _ChatsPaneState extends State<_ChatsPane> {
   final _searchController = TextEditingController();
   String _query = '';
+  bool _unreadOnly = false;
   bool _showSafetyBanner = false;
   bool _bannerReady = false;
 
@@ -745,8 +746,12 @@ class _ChatsPaneState extends State<_ChatsPane> {
 
   List<ChatConversation> get _filtered {
     final q = _query.trim().toLowerCase();
-    if (q.isEmpty) return widget.conversations;
-    return widget.conversations.where((c) {
+    var list = widget.conversations;
+    if (_unreadOnly) {
+      list = list.where((c) => c.unreadCount > 0).toList();
+    }
+    if (q.isEmpty) return list;
+    return list.where((c) {
       return c.peerName.toLowerCase().contains(q) ||
           c.lastMessage.toLowerCase().contains(q) ||
           c.peerCompanyName.toLowerCase().contains(q);
@@ -837,14 +842,22 @@ class _ChatsPaneState extends State<_ChatsPane> {
               ),
               const SizedBox(width: 10),
               Material(
-                color: const Color(0xFF1A2550),
+                color: _unreadOnly
+                    ? AppColors.purple.withValues(alpha: 0.25)
+                    : const Color(0xFF1A2550),
                 borderRadius: BorderRadius.circular(14),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(14),
                   onTap: () {
+                    setState(() => _unreadOnly = !_unreadOnly);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Filters coming soon'),
+                      SnackBar(
+                        duration: const Duration(seconds: 1),
+                        content: Text(
+                          _unreadOnly
+                              ? 'Showing unread only'
+                              : 'Showing all conversations',
+                        ),
                       ),
                     );
                   },
@@ -855,12 +868,14 @@ class _ChatsPaneState extends State<_ChatsPane> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: AppColors.border.withValues(alpha: 0.45),
+                        color: _unreadOnly
+                            ? AppColors.purple
+                            : AppColors.border.withValues(alpha: 0.45),
                       ),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.tune_rounded,
-                      color: AppColors.white,
+                      color: _unreadOnly ? AppColors.purple : AppColors.white,
                       size: 22,
                     ),
                   ),

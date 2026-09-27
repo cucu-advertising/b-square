@@ -1,6 +1,7 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, Query, UploadFile
+from pydantic import BaseModel
 
 from app.api.deps import get_auth_service, get_connection_service, get_current_user_id
 from app.core.constants import (
@@ -43,8 +44,15 @@ async def get_signup_options() -> dict:
 async def discover_users(
     user_id: Annotated[str, Depends(get_current_user_id)],
     connection_service: Annotated[ConnectionService, Depends(get_connection_service)],
+    interests: Annotated[str | None, Query()] = None,
+    industry: Annotated[str | None, Query()] = None,
 ) -> list[dict]:
-    users = await connection_service.discover_users(user_id)
+    interest_list = (
+        [i.strip() for i in interests.split(",") if i.strip()] if interests else None
+    )
+    users = await connection_service.discover_users(
+        user_id, interests=interest_list, industry=industry
+    )
     return [_public_user_dict(user) for user in users]
 
 
@@ -72,6 +80,38 @@ async def record_profile_view(
     connection_service: Annotated[ConnectionService, Depends(get_connection_service)],
 ) -> dict[str, Any]:
     return await connection_service.record_profile_view(user_id, target_user_id)
+
+
+@router.post("/{target_user_id}/block")
+async def block_user(
+    target_user_id: str,
+    user_id: Annotated[str, Depends(get_current_user_id)],
+    connection_service: Annotated[ConnectionService, Depends(get_connection_service)],
+) -> dict[str, str]:
+    return await connection_service.block_user(user_id, target_user_id)
+
+
+@router.delete("/{target_user_id}/block")
+async def unblock_user(
+    target_user_id: str,
+    user_id: Annotated[str, Depends(get_current_user_id)],
+    connection_service: Annotated[ConnectionService, Depends(get_connection_service)],
+) -> dict[str, str]:
+    return await connection_service.unblock_user(user_id, target_user_id)
+
+
+class _ReportBody(BaseModel):
+    reason: str = ""
+
+
+@router.post("/{target_user_id}/report")
+async def report_user(
+    target_user_id: str,
+    payload: _ReportBody,
+    user_id: Annotated[str, Depends(get_current_user_id)],
+    connection_service: Annotated[ConnectionService, Depends(get_connection_service)],
+) -> dict[str, str]:
+    return await connection_service.report_user(user_id, target_user_id, payload.reason)
 
 
 @router.get("/{target_user_id}")

@@ -66,6 +66,8 @@ class ChatMessage {
     required this.content,
     required this.createdAt,
     this.readAt,
+    this.attachmentUrl,
+    this.attachmentType,
   });
 
   final String id;
@@ -75,10 +77,15 @@ class ChatMessage {
   final String content;
   final DateTime createdAt;
   final DateTime? readAt;
+  final String? attachmentUrl;
+  final String? attachmentType;
 
   bool isMine(String currentUserId) => senderId == currentUserId;
+  bool get hasImageAttachment =>
+      attachmentUrl != null && attachmentType == 'image';
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    final rawAttachment = json['attachmentUrl']?.toString();
     return ChatMessage(
       id: json['id']?.toString() ?? '',
       conversationId: json['conversationId']?.toString() ?? '',
@@ -88,6 +95,12 @@ class ChatMessage {
       createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '')?.toLocal() ??
           DateTime.now(),
       readAt: DateTime.tryParse(json['readAt']?.toString() ?? '')?.toLocal(),
+      attachmentUrl: (rawAttachment == null || rawAttachment.isEmpty)
+          ? null
+          : (rawAttachment.startsWith('http')
+              ? rawAttachment
+              : '${ApiConfig.baseUrl}$rawAttachment'),
+      attachmentType: json['attachmentType']?.toString(),
     );
   }
 }

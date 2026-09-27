@@ -33,6 +33,8 @@ def _serialize_message(row: dict[str, Any]) -> dict[str, Any]:
         "senderId": row["senderId"],
         "receiverId": row["receiverId"],
         "content": row["content"],
+        "attachmentUrl": row.get("attachmentUrl"),
+        "attachmentType": row.get("attachmentType"),
         "createdAt": _iso(row.get("createdAt")),
         "readAt": _iso(row.get("readAt")),
     }
@@ -59,9 +61,20 @@ class MessageService:
             raise AppError("User not found", 404)
         if not await self.connections.exists(user_id, peer_id):
             raise AppError("You must be connected to message this user", 403)
+        if user_id in (peer.get("blockedUserIds") or []):
+            raise AppError("You cannot message this user", 403)
+        viewer = await self.users.find_by_id(user_id)
+        if viewer and peer_id in (viewer.get("blockedUserIds") or []):
+            raise AppError("You have blocked this user", 403)
 
     async def send_message(
-        self, sender_id: str, peer_id: str, content: str
+        self,
+        sender_id: str,
+        peer_id: str,
+        content: str,
+        *,
+        attachment_url: str | None = None,
+        attachment_type: str | None = None,
     ) -> dict[str, Any]:
         await self._require_connected(sender_id, peer_id)
         conversation = await self.conversations.get_or_create(sender_id, peer_id)
@@ -72,10 +85,13 @@ class MessageService:
             sender_id=sender_id,
             receiver_id=peer_id,
             content=content,
+            attachment_url=attachment_url,
+            attachment_type=attachment_type,
         )
+        preview = content if content else "📎 Attachment"
         await self.conversations.touch_after_message(
             conversation_id,
-            content=content,
+            content=preview,
             sender_id=sender_id,
             receiver_id=peer_id,
             created_at=message["createdAt"],
@@ -88,6 +104,14 @@ class MessageService:
             {"type": "message.new", "message": serialized},
         )
         return serialized
+
+    async def delete_conversation(self, user_id: str, peer_id: str) -> dict[str, str]:
+        await self._require_connected(user_id, peer_id)
+        conversation = await self.conversations.find_between(user_id, peer_id)
+        if conversation:
+            await self.messages.delete_for_conversation(str(conversation["_id"]))
+            await self.conversations.delete_between(user_id, peer_id)
+        return {"message": "Conversation deleted"}
 
     async def list_history(
         self,

@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../config/api_config.dart';
@@ -9,6 +11,7 @@ import '../../models/chat_models.dart';
 import '../../providers/signup_flow_provider.dart';
 import '../../services/chat_service.dart';
 import '../../services/chat_socket.dart';
+import '../../services/connection_service.dart';
 import '../../theme/app_theme.dart';
 
 class ChatThreadScreen extends StatefulWidget {
@@ -38,6 +41,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   static const _composerSurface = Color(0xFF141B33);
 
   final _chatService = ChatService();
+  final _connectionService = ConnectionService();
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   final _focusNode = FocusNode();
@@ -210,6 +214,265 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     }
   }
 
+  Future<void> _pickAndSendAttachment() async {
+    if (_sending) return;
+    final picker = ImagePicker();
+    final XFile? picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+    if (picked == null) return;
+
+    final me = _currentUserId;
+    final tempId = 'local-${DateTime.now().microsecondsSinceEpoch}';
+    final optimistic = ChatMessage(
+      id: tempId,
+      conversationId: '',
+      senderId: me,
+      receiverId: widget.peerUserId,
+      content: '',
+      createdAt: DateTime.now(),
+      attachmentUrl: picked.path,
+      attachmentType: 'image',
+    );
+
+    setState(() {
+      _messages = [..._messages, optimistic];
+      _sending = true;
+      _didMutate = true;
+    });
+    _scrollToBottom();
+
+    try {
+      final message = await _chatService.sendAttachment(
+        widget.peerUserId,
+        File(picked.path),
+      );
+      if (!mounted) return;
+      setState(() {
+        _messages = [
+          for (final m in _messages)
+            if (m.id == tempId) message else m,
+        ];
+        _sending = false;
+      });
+      widget.onMessageSent?.call(message);
+    } on ChatException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _messages = _messages.where((m) => m.id != tempId).toList();
+        _sending = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _messages = _messages.where((m) => m.id != tempId).toList();
+        _sending = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to send attachment')),
+      );
+    }
+  }
+
+  Future<void> _showChatOptions() async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: _composerSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ListTile(
+                leading: const Icon(Icons.block_rounded, color: Colors.white),
+                title: const Text(
+                  'Block',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () => Navigator.of(sheetContext).pop('block'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.flag_rounded, color: Colors.white),
+                title: const Text(
+                  'Report',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () => Navigator.of(sheetContext).pop('report'),
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.delete_outline_rounded,
+                  color: Color(0xFFE85D5D),
+                ),
+                title: const Text(
+                  'Delete conversation',
+                  style: TextStyle(color: Color(0xFFE85D5D)),
+                ),
+                onTap: () => Navigator.of(sheetContext).pop('delete'),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (!mounted || action == null) return;
+
+    switch (action) {
+      case 'block':
+        await _confirmAndRun(
+          title: 'Block ${widget.peerName}?',
+          message: 'You won\'t see each other or be able to message anymore.',
+          confirmLabel: 'Block',
+          action: () => _connectionService.blockUser(widget.peerUserId),
+          successMessage: '${widget.peerName} has been blocked',
+          popAfter: true,
+        );
+        break;
+      case 'report':
+        await _showReportDialog();
+        break;
+      case 'delete':
+        await _confirmAndRun(
+          title: 'Delete this conversation?',
+          message: 'This deletes all messages for both of you. This cannot be undone.',
+          confirmLabel: 'Delete',
+          action: () => _chatService.deleteConversation(widget.peerUserId),
+          successMessage: 'Conversation deleted',
+          popAfter: true,
+        );
+        break;
+    }
+  }
+
+  Future<void> _showReportDialog() async {
+    final controller = TextEditingController();
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: _composerSurface,
+          title: const Text('Report user', style: TextStyle(color: Colors.white)),
+          content: TextField(
+            controller: controller,
+            maxLines: 3,
+            style: const TextStyle(color: Colors.white),
+            decoration: const InputDecoration(
+              hintText: 'What\'s the issue? (optional)',
+              hintStyle: TextStyle(color: Colors.white38),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(dialogContext).pop(controller.text.trim()),
+              child: const Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
+    if (reason == null || !mounted) return;
+    await _confirmAndRun(
+      title: null,
+      message: null,
+      confirmLabel: '',
+      action: () => _connectionService.reportUser(widget.peerUserId, reason),
+      successMessage: 'Report submitted',
+      popAfter: false,
+      skipConfirm: true,
+    );
+  }
+
+  Future<void> _confirmAndRun({
+    required String? title,
+    required String? message,
+    required String confirmLabel,
+    required Future<void> Function() action,
+    required String successMessage,
+    required bool popAfter,
+    bool skipConfirm = false,
+  }) async {
+    if (!skipConfirm) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            backgroundColor: _composerSurface,
+            title: Text(title ?? '', style: const TextStyle(color: Colors.white)),
+            content: Text(
+              message ?? '',
+              style: const TextStyle(color: Colors.white70),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: Text(
+                  confirmLabel,
+                  style: const TextStyle(color: Color(0xFFE85D5D)),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+      if (confirmed != true || !mounted) return;
+    }
+
+    try {
+      await action();
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(successMessage)));
+      if (popAfter) {
+        _didMutate = true;
+        _pop();
+      }
+    } on ChatException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
+    } on ConnectionException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Something went wrong: $e')));
+    }
+  }
+
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scrollController.hasClients) return;
@@ -266,11 +529,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 name: widget.peerName,
                 image: _peerImage(),
                 onBack: _pop,
-                onMore: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Chat options coming soon')),
-                  );
-                },
+                onMore: _showChatOptions,
               ),
               Expanded(child: _buildBody()),
               _Composer(
@@ -279,11 +538,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 sending: _sending,
                 surface: _composerSurface,
                 onSend: _send,
-                onAttach: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Attachments coming soon')),
-                  );
-                },
+                onAttach: _pickAndSendAttachment,
                 onEmoji: () {
                   FocusScope.of(context).unfocus();
                   setState(() => _showEmojiPicker = !_showEmojiPicker);
@@ -566,14 +821,38 @@ class _MessageBubble extends StatelessWidget {
           crossAxisAlignment:
               mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
-            Text(
-              message.content,
-              style: AppTheme.manrope(
-                fontSize: 15,
-                height: 1.35,
-                color: AppColors.white,
+            if (message.hasImageAttachment) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: message.attachmentUrl!.startsWith('http')
+                    ? Image.network(
+                        message.attachmentUrl!,
+                        width: 200,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const SizedBox(
+                          width: 200,
+                          height: 120,
+                          child: Icon(Icons.broken_image_outlined,
+                              color: AppColors.lightMuted),
+                        ),
+                      )
+                    : Image.file(
+                        File(message.attachmentUrl!),
+                        width: 200,
+                        fit: BoxFit.cover,
+                      ),
               ),
-            ),
+              if (message.content.isNotEmpty) const SizedBox(height: 6),
+            ],
+            if (message.content.isNotEmpty)
+              Text(
+                message.content,
+                style: AppTheme.manrope(
+                  fontSize: 15,
+                  height: 1.35,
+                  color: AppColors.white,
+                ),
+              ),
             const SizedBox(height: 6),
             Row(
               mainAxisSize: MainAxisSize.min,

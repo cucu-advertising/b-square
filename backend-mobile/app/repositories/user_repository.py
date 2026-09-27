@@ -12,6 +12,9 @@ class UserRepository:
     async def find_by_email(self, email: str) -> dict[str, Any] | None:
         return await self.collection.find_one({"email": email.lower()})
 
+    async def find_by_reset_token(self, token: str) -> dict[str, Any] | None:
+        return await self.collection.find_one({"resetPasswordToken": token})
+
     async def find_by_id(self, user_id: str) -> dict[str, Any] | None:
         if not ObjectId.is_valid(user_id):
             return None
@@ -28,6 +31,8 @@ class UserRepository:
         exclude_user_id: str,
         *,
         exclude_ids: list[str] | None = None,
+        interests: list[str] | None = None,
+        industry: str | None = None,
         limit: int = 50,
     ) -> list[dict[str, Any]]:
         excluded: list[ObjectId] = []
@@ -42,13 +47,54 @@ class UserRepository:
         query: dict[str, Any] = {}
         if excluded:
             query["_id"] = {"$nin": excluded}
+        # Exclude anyone the viewer has blocked, or who has blocked the viewer.
+        query["blockedUserIds"] = {"$ne": exclude_user_id}
+        if interests:
+            query["businessInterests"] = {"$in": interests}
+        if industry:
+            query["industry"] = industry
 
         cursor = (
             self.collection.find(query)
             .sort("createdAt", -1)
             .limit(max(1, min(limit, 100)))
         )
-        return await cursor.to_list(length=limit)
+        rows = await cursor.to_list(length=limit)
+        if exclude_user_id:
+            rows = [
+                row
+                for row in rows
+                if exclude_user_id not in (row.get("blockedUserIds") or [])
+            ]
+        return rows
+
+    async def block_user(self, user_id: str, target_id: str) -> None:
+        if not ObjectId.is_valid(user_id):
+            return
+        await self.collection.update_one(
+            {"_id": ObjectId(user_id)},
+            {
+                "$addToSet": {"blockedUserIds": target_id},
+                "$set": {"updatedAt": datetime.utcnow()},
+            },
+        )
+
+    async def unblock_user(self, user_id: str, target_id: str) -> None:
+        if not ObjectId.is_valid(user_id):
+            return
+        await self.collection.update_one(
+            {"_id": ObjectId(user_id)},
+            {
+                "$pull": {"blockedUserIds": target_id},
+                "$set": {"updatedAt": datetime.utcnow()},
+            },
+        )
+
+    async def has_blocked(self, user_id: str, target_id: str) -> bool:
+        user = await self.find_by_id(user_id)
+        if not user:
+            return False
+        return target_id in (user.get("blockedUserIds") or [])
 
     async def create(self, document: dict[str, Any]) -> dict[str, Any]:
         # A sparse unique index only skips documents where the field is

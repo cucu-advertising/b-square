@@ -17,6 +17,9 @@ def new_user_document(**fields: Any) -> dict[str, Any]:
         # OAuth sign-in
         "oauthLinkedinSub": None,
         "onboardingComplete": False,
+        "resetPasswordToken": None,
+        "resetPasswordExpires": None,
+        "blockedUserIds": [],
         # Step 3 — Profile images
         "profilePhoto": None,
         "companyLogo": None,
