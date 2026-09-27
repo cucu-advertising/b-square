@@ -88,6 +88,31 @@ class AuthService {
     }
   }
 
+  /// Exchanges a verified Apple identity token for our own session.
+  /// `fullName` should only be passed on the very first sign-in — Apple
+  /// only ever provides it once, from the native SDK response, never inside
+  /// the token itself.
+  Future<Map<String, dynamic>> appleSignIn(
+    String identityToken, {
+    String? fullName,
+  }) async {
+    try {
+      final response = await _api.post(
+        '/auth/apple/exchange',
+        body: {
+          'identityToken': identityToken,
+          if (fullName != null && fullName.isNotEmpty) 'fullName': fullName,
+        },
+      );
+      await _persistAuthResponse(response);
+      final user = _userFromAuthResponse(response);
+      user['isNewUser'] = response['isNewUser'] == true;
+      return user;
+    } on ApiException catch (e) {
+      throw AuthException(e.message);
+    }
+  }
+
   Future<void> forgotPassword(String email) async {
     try {
       await _api.post(

@@ -8,6 +8,7 @@ from app.api.deps import get_auth_service, get_current_user_id
 from app.core.config import get_settings
 from app.core.exceptions import AppError
 from app.schemas.auth import (
+    AppleExchangeRequest,
     DeleteAccountRequest,
     ForgotPasswordRequest,
     LinkedInExchangeRequest,
@@ -17,7 +18,7 @@ from app.schemas.auth import (
     TokenResponse,
     UserResponse,
 )
-from app.services import linkedin_oauth
+from app.services import apple_oauth, linkedin_oauth
 from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -149,6 +150,22 @@ async def linkedin_exchange(
 ) -> dict:
     claims = await linkedin_oauth.exchange_code_for_claims(payload.code)
     user, tokens, is_new_user = await auth_service.linkedin_auth(claims)
+    return {
+        "user": user.model_dump(by_alias=True),
+        "isNewUser": is_new_user,
+        **tokens.model_dump(by_alias=True),
+    }
+
+
+@router.post("/apple/exchange")
+async def apple_exchange(
+    payload: AppleExchangeRequest,
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+) -> dict:
+    claims = await apple_oauth.verify_identity_token(payload.identity_token)
+    user, tokens, is_new_user = await auth_service.apple_auth(
+        claims, payload.full_name
+    )
     return {
         "user": user.model_dump(by_alias=True),
         "isNewUser": is_new_user,

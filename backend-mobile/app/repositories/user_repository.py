@@ -26,6 +26,9 @@ class UserRepository:
     async def find_by_linkedin_sub(self, sub: str) -> dict[str, Any] | None:
         return await self.collection.find_one({"oauthLinkedinSub": sub})
 
+    async def find_by_apple_sub(self, sub: str) -> dict[str, Any] | None:
+        return await self.collection.find_one({"oauthAppleSub": sub})
+
     async def list_discoverable(
         self,
         exclude_user_id: str,
@@ -106,6 +109,8 @@ class UserRepository:
             document.pop("dinNumber", None)
         if document.get("oauthLinkedinSub") is None:
             document.pop("oauthLinkedinSub", None)
+        if document.get("oauthAppleSub") is None:
+            document.pop("oauthAppleSub", None)
         result = await self.collection.insert_one(document)
         document["_id"] = result.inserted_id
         return document

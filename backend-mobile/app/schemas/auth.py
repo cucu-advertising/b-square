@@ -292,6 +292,13 @@ class LinkedInExchangeRequest(BaseModel):
     code: str
 
 
+class AppleExchangeRequest(BaseModel):
+    identity_token: str = Field(alias="identityToken")
+    full_name: str | None = Field(default=None, alias="fullName")
+
+    model_config = {"populate_by_name": True}
+
+
 class ForgotPasswordRequest(BaseModel):
     email: str
 

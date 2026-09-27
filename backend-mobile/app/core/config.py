@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     linkedin_app_redirect_scheme: str = "com.cucuadvertising.bsquare"
     resend_api_key: str = ""
     resend_from_email: str = "B Square <onboarding@resend.dev>"
+    apple_bundle_id: str = "com.cucuadvertising.bsquare"
 
     @property
     def cors_origin_list(self) -> list[str]:

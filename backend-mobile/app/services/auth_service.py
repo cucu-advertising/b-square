@@ -184,6 +184,58 @@ class AuthService:
         tokens = await self._issue_tokens(user)
         return serialize_user(user), tokens, True
 
+    async def apple_auth(
+        self, claims: dict[str, Any], full_name: str | None = None
+    ) -> tuple[UserResponse, TokenResponse, bool]:
+        """Signs in (or signs up) a user via a verified Apple identity token.
+
+        Apple only includes the user's name in its native-SDK response on the
+        FIRST authorization ever, and never puts it in the token itself — the
+        client must capture and pass it along as `full_name` on that first
+        call. Every call after that, name will be None; that's expected.
+        """
+        sub = claims.get("sub")
+        if not sub:
+            raise AppError("Apple sign-in failed: missing subject", 401)
+        email = (claims.get("email") or "").lower().strip()
+
+        user = await self.users.find_by_apple_sub(sub)
+        if user:
+            tokens = await self._issue_tokens(user)
+            return serialize_user(user), tokens, False
+
+        if email:
+            existing = await self.users.find_by_email(email)
+            if existing:
+                # Link this Apple identity to the existing email/password account.
+                updated = await self.users.update(
+                    str(existing["_id"]), {"oauthAppleSub": sub}
+                )
+                tokens = await self._issue_tokens(updated or existing)
+                return serialize_user(updated or existing), tokens, False
+
+        given_name = ""
+        family_name = ""
+        if full_name:
+            parts = full_name.strip().split(None, 1)
+            given_name = parts[0] if parts else ""
+            family_name = parts[1] if len(parts) > 1 else ""
+
+        document = new_user_document(
+            firstName=given_name or "Member",
+            lastName=family_name,
+            email=email,
+            oauthAppleSub=sub,
+            founderName=f"{given_name} {family_name}".strip(),
+        )
+        try:
+            user = await self.users.create(document)
+        except DuplicateKeyError as exc:
+            raise AppError("An account with this email already exists", 409) from exc
+
+        tokens = await self._issue_tokens(user)
+        return serialize_user(user), tokens, True
+
     async def request_password_reset(self, email: str, base_url: str) -> None:
         """Always succeeds from the caller's perspective (no email enumeration)."""
         user = await self.users.find_by_email(email.lower().strip())

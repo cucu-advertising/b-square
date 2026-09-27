@@ -1,7 +1,11 @@
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:provider/provider.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../providers/signup_flow_provider.dart';
 import '../services/auth_service.dart';
@@ -24,6 +28,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   bool _signingIn = false;
 
   static const _callbackScheme = 'com.cucuadvertising.bsquare';
+
+  bool get _showAppleSignIn => !kIsWeb && Platform.isIOS;
 
   Future<void> _signInWithLinkedIn() async {
     if (_signingIn) return;
@@ -65,6 +71,59 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     }
   }
 
+  Future<void> _signInWithApple() async {
+    if (_signingIn) return;
+    setState(() => _signingIn = true);
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+      final identityToken = credential.identityToken;
+      if (identityToken == null || identityToken.isEmpty) {
+        throw AuthException('Apple sign-in failed: no token returned');
+      }
+      // Apple only ever gives the name on this very first authorization —
+      // capture it now, it won't be available on later sign-ins.
+      final nameParts = [
+        credential.givenName,
+        credential.familyName,
+      ].whereType<String>().where((s) => s.isNotEmpty);
+      final fullName = nameParts.isEmpty ? null : nameParts.join(' ');
+
+      final user = await _authService.appleSignIn(
+        identityToken,
+        fullName: fullName,
+      );
+      if (!mounted) return;
+      context.read<SignupFlowProvider>().applyUser(user);
+      await Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute<void>(builder: (_) => const HomeScreen()),
+        (_) => false,
+      );
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (!mounted) return;
+      if (e.code == AuthorizationErrorCode.canceled) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Apple sign-in failed: ${e.message}')),
+      );
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Apple sign-in failed: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _signingIn = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -90,6 +149,20 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       leading: const _LinkedInIcon(),
                       onPressed: _signInWithLinkedIn,
                     ),
+                    if (_showAppleSignIn) ...[
+                      const SizedBox(height: 12),
+                      PillButton(
+                        label: _signingIn
+                            ? 'Signing in...'
+                            : 'Sign in with Apple',
+                        leading: const Icon(
+                          Icons.apple,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                        onPressed: _signInWithApple,
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     PillButton(
                       label: 'More options',

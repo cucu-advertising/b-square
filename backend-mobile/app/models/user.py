@@ -16,6 +16,7 @@ def new_user_document(**fields: Any) -> dict[str, Any]:
         "passwordHash": "",
         # OAuth sign-in
         "oauthLinkedinSub": None,
+        "oauthAppleSub": None,
         "onboardingComplete": False,
         "resetPasswordToken": None,
         "resetPasswordExpires": None,
