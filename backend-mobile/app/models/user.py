@@ -14,6 +14,9 @@ def new_user_document(**fields: Any) -> dict[str, Any]:
         # Step 2 — Account
         "email": "",
         "passwordHash": "",
+        # OAuth sign-in
+        "oauthLinkedinSub": None,
+        "onboardingComplete": False,
         # Step 3 — Profile images
         "profilePhoto": None,
         "companyLogo": None,

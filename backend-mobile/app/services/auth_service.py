@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+import secrets
 from typing import Any
 
 from pymongo.errors import DuplicateKeyError
@@ -12,6 +14,7 @@ from app.core.security import (
 from app.models.user import new_user_document
 from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.repositories.user_repository import UserRepository
+from app.services import email_service
 from app.schemas.auth import (
     LoginRequest,
     OnboardingRequest,
@@ -59,6 +62,7 @@ def serialize_user(user: dict[str, Any]) -> UserResponse:
         latitude=user.get("latitude"),
         longitude=user.get("longitude"),
         locationEnabled=user.get("locationEnabled", False),
+        onboardingComplete=user.get("onboardingComplete", False),
     )
 
 
@@ -128,6 +132,90 @@ class AuthService:
         tokens = await self._issue_tokens(user)
         return serialize_user(user), tokens
 
+    async def linkedin_auth(
+        self, claims: dict[str, Any]
+    ) -> tuple[UserResponse, TokenResponse, bool]:
+        """Signs in (or signs up) a user via a verified LinkedIn ID token's claims.
+
+        Returns (user, tokens, is_new_user) so the caller can route a brand
+        new account into the onboarding flow.
+        """
+        sub = claims.get("sub")
+        if not sub:
+            raise AppError("LinkedIn sign-in failed: missing subject", 401)
+        email = (claims.get("email") or "").lower().strip()
+
+        user = await self.users.find_by_linkedin_sub(sub)
+        if user:
+            tokens = await self._issue_tokens(user)
+            return serialize_user(user), tokens, False
+
+        if email:
+            existing = await self.users.find_by_email(email)
+            if existing:
+                # Link this LinkedIn identity to the existing email/password account.
+                updated = await self.users.update(
+                    str(existing["_id"]), {"oauthLinkedinSub": sub}
+                )
+                tokens = await self._issue_tokens(updated or existing)
+                return serialize_user(updated or existing), tokens, False
+
+        given_name = (claims.get("given_name") or "").strip()
+        family_name = (claims.get("family_name") or "").strip()
+        if not given_name:
+            full_name = (claims.get("name") or "").strip()
+            parts = full_name.split(None, 1)
+            given_name = parts[0] if parts else "Member"
+            family_name = parts[1] if len(parts) > 1 else ""
+
+        document = new_user_document(
+            firstName=given_name or "Member",
+            lastName=family_name,
+            email=email,
+            oauthLinkedinSub=sub,
+            profilePhoto=claims.get("picture"),
+            founderName=f"{given_name} {family_name}".strip(),
+        )
+        try:
+            user = await self.users.create(document)
+        except DuplicateKeyError as exc:
+            raise AppError("An account with this email already exists", 409) from exc
+
+        tokens = await self._issue_tokens(user)
+        return serialize_user(user), tokens, True
+
+    async def request_password_reset(self, email: str, base_url: str) -> None:
+        """Always succeeds from the caller's perspective (no email enumeration)."""
+        user = await self.users.find_by_email(email.lower().strip())
+        if not user:
+            return
+        token = secrets.token_urlsafe(32)
+        expires = datetime.utcnow() + timedelta(hours=1)
+        await self.users.update(
+            str(user["_id"]),
+            {"resetPasswordToken": token, "resetPasswordExpires": expires},
+        )
+        reset_url = f"{base_url.rstrip('/')}/api/v1/auth/reset-password?token={token}"
+        await email_service.send_password_reset_email(
+            to_email=user["email"], reset_url=reset_url
+        )
+
+    async def reset_password(self, token: str, new_password: str) -> None:
+        user = await self.users.find_by_reset_token(token)
+        if not user:
+            raise AppError("This reset link is invalid or has expired", 400)
+        expires = user.get("resetPasswordExpires")
+        if not expires or expires < datetime.utcnow():
+            raise AppError("This reset link is invalid or has expired", 400)
+        await self.users.update(
+            str(user["_id"]),
+            {
+                "passwordHash": hash_password(new_password),
+                "resetPasswordToken": None,
+                "resetPasswordExpires": None,
+            },
+        )
+
     async def login(self, payload: LoginRequest) -> tuple[UserResponse, TokenResponse]:
         user = await self.users.find_by_email(payload.email.lower())
         if not user:
@@ -185,6 +273,7 @@ class AuthService:
             "businessGoal": payload.business_goal,
             "lookingFor": payload.looking_for,
             "businessInterests": payload.business_interests,
+            "onboardingComplete": True,
         }
 
         if payload.profile_photo:

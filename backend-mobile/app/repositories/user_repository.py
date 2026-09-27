@@ -20,6 +20,9 @@ class UserRepository:
     async def find_by_din(self, din_number: str) -> dict[str, Any] | None:
         return await self.collection.find_one({"dinNumber": din_number})
 
+    async def find_by_linkedin_sub(self, sub: str) -> dict[str, Any] | None:
+        return await self.collection.find_one({"oauthLinkedinSub": sub})
+
     async def list_discoverable(
         self,
         exclude_user_id: str,
@@ -55,6 +58,8 @@ class UserRepository:
         # collide on a shared null value. Remove the key outright instead.
         if document.get("dinNumber") is None:
             document.pop("dinNumber", None)
+        if document.get("oauthLinkedinSub") is None:
+            document.pop("oauthLinkedinSub", None)
         result = await self.collection.insert_one(document)
         document["_id"] = result.inserted_id
         return document

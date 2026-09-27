@@ -32,6 +32,7 @@ async def _ensure_indexes() -> None:
     db = get_db()
     await db.users.create_index("email", unique=True)
     await _ensure_unique_index(db.users, "dinNumber", sparse=True)
+    await _ensure_unique_index(db.users, "oauthLinkedinSub", sparse=True)
     await _migrate_refresh_token_indexes(db.refresh_tokens)
     await db.refresh_tokens.create_index("token", unique=True)
     await db.refresh_tokens.create_index("expires_at", expireAfterSeconds=0)

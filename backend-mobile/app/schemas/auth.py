@@ -282,9 +282,22 @@ class UserResponse(BaseModel):
     revenue_range: str = Field(alias="revenueRange")
     business_goal: str = Field(alias="businessGoal")
     looking_for: list[str] = Field(default_factory=list, alias="lookingFor")
-    business_interests: list[str] = Field(default_factory=list, alias="businessInterests")
-    latitude: float | None = None
-    longitude: float | None = None
     location_enabled: bool = Field(default=False, alias="locationEnabled")
+    onboarding_complete: bool = Field(default=False, alias="onboardingComplete")
+
+    model_config = {"populate_by_name": True}
+
+
+class LinkedInExchangeRequest(BaseModel):
+    code: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(alias="newPassword")
 
     model_config = {"populate_by_name": True}

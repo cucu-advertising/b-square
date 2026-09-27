@@ -57,6 +57,48 @@ class AuthService {
     }
   }
 
+  /// Exchanges a LinkedIn OAuth authorization code for our own session.
+  /// Returns the user map with an extra `isNewUser` bool so the caller can
+  /// route a brand-new account into onboarding.
+  Future<Map<String, dynamic>> linkedInSignIn(String code) async {
+    try {
+      final response = await _api.post(
+        '/auth/linkedin/exchange',
+        body: {'code': code},
+      );
+      await _persistAuthResponse(response);
+      final user = _userFromAuthResponse(response);
+      user['isNewUser'] = response['isNewUser'] == true;
+      return user;
+    } on ApiException catch (e) {
+      throw AuthException(e.message);
+    }
+  }
+
+  Future<String> linkedInAuthorizeUrl() async {
+    try {
+      final response = await _api.get('/auth/linkedin/authorize-url');
+      final url = response['url'] as String?;
+      if (url == null || url.isEmpty) {
+        throw AuthException('Could not start LinkedIn sign-in');
+      }
+      return url;
+    } on ApiException catch (e) {
+      throw AuthException(e.message);
+    }
+  }
+
+  Future<void> forgotPassword(String email) async {
+    try {
+      await _api.post(
+        '/auth/forgot-password',
+        body: {'email': email.trim().toLowerCase()},
+      );
+    } on ApiException catch (e) {
+      throw AuthException(e.message);
+    }
+  }
+
   Future<Map<String, dynamic>> fetchCurrentUser() async {
     try {
       final user = await _api.get('/auth/me', authenticated: true);

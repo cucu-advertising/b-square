@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../../config/api_config.dart';
@@ -45,6 +46,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   bool _loading = true;
   bool _sending = false;
   bool _didMutate = false;
+  bool _showEmojiPicker = false;
   String? _error;
   StreamSubscription<Map<String, dynamic>>? _socketSub;
 
@@ -283,10 +285,53 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                   );
                 },
                 onEmoji: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Emoji picker coming soon')),
-                  );
+                  FocusScope.of(context).unfocus();
+                  setState(() => _showEmojiPicker = !_showEmojiPicker);
                 },
+              ),
+              Offstage(
+                offstage: !_showEmojiPicker,
+                child: SizedBox(
+                  height: 280,
+                  child: EmojiPicker(
+                    onEmojiSelected: (category, emoji) {
+                      final text = _controller.text;
+                      final selection = _controller.selection;
+                      final cursor = selection.baseOffset >= 0
+                          ? selection.baseOffset
+                          : text.length;
+                      final newText = text.replaceRange(
+                        cursor,
+                        cursor,
+                        emoji.emoji,
+                      );
+                      _controller.value = TextEditingValue(
+                        text: newText,
+                        selection: TextSelection.collapsed(
+                          offset: cursor + emoji.emoji.length,
+                        ),
+                      );
+                    },
+                    config: const Config(
+                      height: 280,
+                      emojiViewConfig: EmojiViewConfig(
+                        backgroundColor: _composerSurface,
+                      ),
+                      categoryViewConfig: CategoryViewConfig(
+                        backgroundColor: _composerSurface,
+                        indicatorColor: AppColors.purple,
+                        iconColorSelected: AppColors.purple,
+                      ),
+                      bottomActionBarConfig: BottomActionBarConfig(
+                        backgroundColor: _composerSurface,
+                        buttonColor: _composerSurface,
+                      ),
+                      searchViewConfig: SearchViewConfig(
+                        backgroundColor: _composerSurface,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

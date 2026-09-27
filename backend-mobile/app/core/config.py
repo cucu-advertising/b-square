@@ -16,6 +16,12 @@ class Settings(BaseSettings):
     client_url: str = "http://localhost:3000"
     cors_origins: str = "http://localhost:3000,http://localhost:8080"
     upload_dir: str = "uploads"
+    linkedin_client_id: str = ""
+    linkedin_client_secret: str = ""
+    linkedin_redirect_uri: str = ""
+    linkedin_app_redirect_scheme: str = "com.cucuadvertising.bsquare"
+    resend_api_key: str = ""
+    resend_from_email: str = "B Square <onboarding@resend.dev>"
 
     @property
     def cors_origin_list(self) -> list[str]:

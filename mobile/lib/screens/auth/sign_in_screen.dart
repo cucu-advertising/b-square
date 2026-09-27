@@ -8,6 +8,7 @@ import '../../widgets/brand_header.dart';
 import '../../widgets/onboarding/circle_nav_button.dart';
 import '../../widgets/pill_button.dart';
 import '../home_screen.dart';
+import 'forgot_password_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -86,8 +87,8 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   void _onForgotPassword() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Coming soon')),
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const ForgotPasswordScreen()),
     );
   }
 

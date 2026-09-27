@@ -20,9 +20,14 @@ class ApiConfig {
   /// a local backend instead of the deployed one.
   static const String? deviceHostOverride = null;
 
+  /// Set to true to have debug builds (flutter run) hit the deployed Render
+  /// backend too, instead of expecting a local backend-mobile on this PC.
+  /// Flip back to false once you're running backend-mobile locally.
+  static const bool useProdInDebug = true;
+
   static String get baseUrl {
     // Release builds (including the APK) always use the deployed backend.
-    if (kReleaseMode) {
+    if (kReleaseMode || useProdInDebug) {
       return prodBaseUrl;
     }
     if (deviceHostOverride != null && deviceHostOverride!.isNotEmpty) {

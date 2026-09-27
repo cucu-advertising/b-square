@@ -51,6 +51,17 @@ class ConnectionService {
     }
   }
 
+  Future<void> cancelRequest(String requestId) async {
+    try {
+      await _api.delete(
+        '/connections/request/$requestId',
+        authenticated: true,
+      );
+    } on ApiException catch (e) {
+      throw ConnectionException(e.message);
+    }
+  }
+
   Future<List<ConnectionRequestItem>> fetchReceivedRequests() async {
     try {
       final rows = await _api.getList(

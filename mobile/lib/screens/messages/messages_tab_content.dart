@@ -13,6 +13,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/glass_container.dart';
 import '../profile/member_profile_screen.dart';
 import 'chat_thread_screen.dart';
+import 'sent_requests_screen.dart';
 
 const _chatSafetyBannerDismissedKey = 'chat_safety_banner_dismissed';
 
@@ -436,7 +437,11 @@ class _MessagesTabContentState extends State<MessagesTabContent> {
           onDecline: _decline,
           onDismissUpdate: _dismissUpdate,
           onRefresh: _load,
-          onViewSent: () => _showSnack('Sent requests coming soon'),
+          onViewSent: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const SentRequestsScreen(),
+            ),
+          ),
           onOpenProfile: _openRequestProfile,
         ),
     };
