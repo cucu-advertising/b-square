@@ -8,6 +8,7 @@ from app.api.deps import get_auth_service, get_current_user_id
 from app.core.config import get_settings
 from app.core.exceptions import AppError
 from app.schemas.auth import (
+    DeleteAccountRequest,
     ForgotPasswordRequest,
     LinkedInExchangeRequest,
     LoginRequest,
@@ -62,6 +63,61 @@ async def me(
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> UserResponse:
     return await auth_service.get_me(user_id)
+
+
+@router.delete("/me")
+async def delete_account(
+    payload: DeleteAccountRequest,
+    user_id: Annotated[str, Depends(get_current_user_id)],
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+) -> dict[str, str]:
+    await auth_service.delete_account(user_id, payload.password)
+    return {"message": "Account deleted"}
+
+
+_ACCOUNT_DELETION_PAGE = """
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Delete your B Square account</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; background: #0B1020; color: #fff;
+           display: flex; align-items: center; justify-content: center; min-height: 100vh;
+           margin: 0; padding: 24px; box-sizing: border-box; }
+    .card { background: #151B33; padding: 32px; border-radius: 16px; width: 100%; max-width: 420px; }
+    h2 { margin-top: 0; }
+    p { line-height: 1.5; color: #d0d3e0; }
+    ol { color: #d0d3e0; line-height: 1.6; padding-left: 20px; }
+    a { color: #a78bfa; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Delete your account</h2>
+    <p>You can delete your B Square account and all associated data (profile,
+    messages, connections) at any time, in one of two ways:</p>
+    <p><strong>In the app:</strong></p>
+    <ol>
+      <li>Open B Square and sign in</li>
+      <li>Go to your Profile tab</li>
+      <li>Tap "Delete account" and confirm</li>
+    </ol>
+    <p><strong>Without the app:</strong> email
+    <a href="mailto:bsquare@gmail.com">bsquare@gmail.com</a>
+    from your registered email address with the subject "Delete my account",
+    and we'll delete your account and associated data within 30 days.</p>
+    <p>Deleting your account permanently removes your profile, messages,
+    connections, and other account data. This cannot be undone.</p>
+  </div>
+</body>
+</html>
+"""
+
+
+@router.get("/account-deletion", response_class=HTMLResponse)
+async def account_deletion_info() -> HTMLResponse:
+    return HTMLResponse(_ACCOUNT_DELETION_PAGE)
 
 
 @router.get("/linkedin/authorize-url")

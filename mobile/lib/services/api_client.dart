@@ -94,10 +94,15 @@ class ApiClient {
 
   Future<Map<String, dynamic>> delete(
     String path, {
+    Map<String, dynamic>? body,
     bool authenticated = true,
   }) async {
     final result = await _send(
-      () async => _client.delete(_uri(path), headers: await _headers(authenticated)),
+      () async => _client.delete(
+        _uri(path),
+        headers: await _headers(authenticated),
+        body: body == null ? null : jsonEncode(body),
+      ),
       authenticated: authenticated,
       asMap: true,
     );

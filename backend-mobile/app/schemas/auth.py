@@ -301,3 +301,7 @@ class ResetPasswordRequest(BaseModel):
     new_password: str = Field(alias="newPassword")
 
     model_config = {"populate_by_name": True}
+
+
+class DeleteAccountRequest(BaseModel):
+    password: str | None = None

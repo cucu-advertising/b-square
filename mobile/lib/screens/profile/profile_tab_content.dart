@@ -28,6 +28,7 @@ class _ProfileTabContentState extends State<ProfileTabContent> {
   final _connectionService = ConnectionService();
   bool _aboutExpanded = false;
   bool _isLoggingOut = false;
+  bool _isDeletingAccount = false;
   ProfileStats _stats = ProfileStats.empty;
 
   @override
@@ -264,6 +265,22 @@ class _ProfileTabContentState extends State<ProfileTabContent> {
                       : const Icon(Icons.logout_rounded, size: 18),
                   onPressed: _isLoggingOut ? () {} : () => _logout(context),
                 ),
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: _isDeletingAccount
+                      ? null
+                      : () => _confirmDeleteAccount(context),
+                  child: Text(
+                    _isDeletingAccount
+                        ? 'Deleting account...'
+                        : 'Delete account',
+                    style: AppTheme.manrope(
+                      fontSize: 13,
+                      color: AppColors.lightMuted,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 8),
               ],
             ),
@@ -287,6 +304,81 @@ class _ProfileTabContentState extends State<ProfileTabContent> {
       if (!context.mounted) return;
       _showSnack(context, 'Could not log out. Please try again.');
       setState(() => _isLoggingOut = false);
+    }
+  }
+
+  Future<void> _confirmDeleteAccount(BuildContext context) async {
+    final passwordController = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF151B33),
+          title: const Text(
+            'Delete your account?',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'This permanently deletes your profile, messages, and '
+                'connections. This cannot be undone.',
+                style: TextStyle(color: Colors.white70),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Confirm your password',
+                  hintStyle: TextStyle(color: Colors.white38),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: Color(0xFFE85D5D)),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    setState(() => _isDeletingAccount = true);
+    try {
+      await _authService.deleteAccount(
+        password: passwordController.text.isEmpty
+            ? null
+            : passwordController.text,
+      );
+      if (!context.mounted) return;
+      context.read<SignupFlowProvider>().clear();
+      await Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute<void>(builder: (_) => const WelcomeScreen()),
+        (_) => false,
+      );
+    } on AuthException catch (e) {
+      if (!context.mounted) return;
+      _showSnack(context, e.message);
+      setState(() => _isDeletingAccount = false);
+    } catch (e) {
+      if (!context.mounted) return;
+      _showSnack(context, 'Could not delete account: $e');
+      setState(() => _isDeletingAccount = false);
     }
   }
 

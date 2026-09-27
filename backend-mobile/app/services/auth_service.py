@@ -216,6 +216,46 @@ class AuthService:
             },
         )
 
+    async def delete_account(self, user_id: str, password: str | None) -> None:
+        user = await self.users.find_by_id(user_id)
+        if not user:
+            raise AppError("User not found", 404)
+
+        stored_hash = user.get("passwordHash")
+        if stored_hash:
+            # Password-based accounts must confirm their password.
+            if not password or not verify_password(password, stored_hash):
+                raise AppError("Incorrect password", 401)
+        # OAuth-only accounts (e.g. LinkedIn) have no password — the JWT
+        # required to reach this endpoint is proof enough of ownership.
+
+        db = self.users.collection.database
+        await db.connections.delete_many(
+            {"$or": [{"userAId": user_id}, {"userBId": user_id}]}
+        )
+        await db.connection_requests.delete_many(
+            {"$or": [{"fromUserId": user_id}, {"toUserId": user_id}]}
+        )
+        await db.conversations.delete_many(
+            {"$or": [{"userAId": user_id}, {"userBId": user_id}]}
+        )
+        await db.messages.delete_many(
+            {"$or": [{"senderId": user_id}, {"receiverId": user_id}]}
+        )
+        await db.notifications.delete_many(
+            {"$or": [{"userId": user_id}, {"fromUserId": user_id}]}
+        )
+        await db.discover_passes.delete_many(
+            {"$or": [{"fromUserId": user_id}, {"targetUserId": user_id}]}
+        )
+        await db.profile_views.delete_many(
+            {"$or": [{"profileUserId": user_id}, {"viewerUserId": user_id}]}
+        )
+        await db.refresh_tokens.delete_many({"user_id": user_id})
+        # Remove this user from anyone else's block list too.
+        await db.users.update_many({}, {"$pull": {"blockedUserIds": user_id}})
+        await self.users.collection.delete_one({"_id": user["_id"]})
+
     async def login(self, payload: LoginRequest) -> tuple[UserResponse, TokenResponse]:
         user = await self.users.find_by_email(payload.email.lower())
         if not user:

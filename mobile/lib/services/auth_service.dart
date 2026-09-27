@@ -99,6 +99,19 @@ class AuthService {
     }
   }
 
+  Future<void> deleteAccount({String? password}) async {
+    try {
+      await _api.delete(
+        '/auth/me',
+        body: {'password': password},
+        authenticated: true,
+      );
+    } on ApiException catch (e) {
+      throw AuthException(e.message);
+    }
+    await _tokens.clear();
+  }
+
   Future<Map<String, dynamic>> fetchCurrentUser() async {
     try {
       final user = await _api.get('/auth/me', authenticated: true);
