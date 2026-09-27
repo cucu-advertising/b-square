@@ -277,8 +277,7 @@ class _ProfileTabContentState extends State<ProfileTabContent> {
                     style: AppTheme.manrope(
                       fontSize: 13,
                       color: AppColors.lightMuted,
-                      decoration: TextDecoration.underline,
-                    ),
+                    ).copyWith(decoration: TextDecoration.underline),
                   ),
                 ),
                 const SizedBox(height: 8),
