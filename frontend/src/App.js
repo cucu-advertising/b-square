@@ -13,6 +13,7 @@ import Requests from "./pages/Requests";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import Onboarding from "./pages/Onboarding";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ChatModal from "./components/ChatModal";
 
 const initials = n => n?.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase() || "?";
@@ -166,6 +167,7 @@ export default function App() {
           <Route path="/login" element={<Navigate to="/home" replace />} />
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
           <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/app/*" element={<ProtectedRoute><LocationTracker /><AppLayout /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
