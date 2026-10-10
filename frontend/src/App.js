@@ -14,6 +14,7 @@ import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import Onboarding from "./pages/Onboarding";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import DeleteAccount from "./pages/DeleteAccount";
 import ChatModal from "./components/ChatModal";
 
 const initials = n => n?.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase() || "?";
@@ -168,6 +169,7 @@ export default function App() {
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/delete-account" element={<DeleteAccount />} />
           <Route path="/app/*" element={<ProtectedRoute><LocationTracker /><AppLayout /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
