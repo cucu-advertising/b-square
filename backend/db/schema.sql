@@ -110,3 +110,33 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS company_name VARCHAR(200);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS headline VARCHAR(300);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS share_slug VARCHAR(200) UNIQUE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_completed BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role_title VARCHAR(200);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS work_email VARCHAR(200);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS company_website TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS registration_number VARCHAR(100);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code VARCHAR(100);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS admission_score INTEGER DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS admission_status VARCHAR(30) DEFAULT 'more_verification';
+
+CREATE TABLE IF NOT EXISTS user_blocks (
+  blocker_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  blocked_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (blocker_id, blocked_id),
+  CHECK (blocker_id != blocked_id)
+);
+
+CREATE TABLE IF NOT EXISTS user_reports (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  reporter_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  reported_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  reason VARCHAR(100) NOT NULL,
+  details TEXT,
+  status VARCHAR(20) NOT NULL DEFAULT 'open',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  CHECK (reporter_id != reported_user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_reports_status ON user_reports(status);
+CREATE INDEX IF NOT EXISTS idx_user_blocks_blocked ON user_blocks(blocked_id);
