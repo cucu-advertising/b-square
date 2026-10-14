@@ -27,7 +27,8 @@ router.get("/pending", async (req, res) => {
         verification_type, verification_status, verification_notes,
         din_number, din_director_name, linkedin_url,
         succession_prev_din, succession_new_din, succession_doc_note,
-        founder_name, created_at
+        founder_name, role_title, work_email, company_website,
+        registration_number, referral_code, admission_score, admission_status, created_at
       FROM users
       WHERE verification_status='pending' AND is_admin=false
       ORDER BY created_at ASC
@@ -46,7 +47,9 @@ router.get("/users", async (req, res) => {
     const { rows } = await db.query(
       `SELECT id, name, email, phone, industry, city,
         verification_type, verification_status, verification_notes,
-        din_number, din_director_name, linkedin_url, founder_name, created_at
+        din_number, din_director_name, linkedin_url, founder_name,
+        role_title, work_email, company_website, registration_number,
+        referral_code, admission_score, admission_status, created_at
        FROM users ${where}
        ORDER BY created_at DESC LIMIT $${params.length-1} OFFSET $${params.length}`,
       params
