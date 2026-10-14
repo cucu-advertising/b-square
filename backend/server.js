@@ -30,6 +30,7 @@ app.use("/api/events", require("./routes/events"));
 app.use("/api/messages", require("./routes/messages"));
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/admission", require("./routes/admission"));
+app.use("/api/safety", require("./routes/safety"));
 
 app.use((req, res) => res.status(404).json({ error: "Route not found" }));
 app.use((err, req, res, next) => { console.error(err.stack); res.status(500).json({ error: "Internal server error" }); });
