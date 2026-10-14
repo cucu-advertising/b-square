@@ -29,6 +29,8 @@ app.use("/api/connections", require("./routes/connections"));
 app.use("/api/events", require("./routes/events"));
 app.use("/api/messages", require("./routes/messages"));
 app.use("/api/admin", require("./routes/admin"));
+app.use("/api/admission", require("./routes/admission"));
+app.use("/api/safety", require("./routes/safety"));
 
 app.use((req, res) => res.status(404).json({ error: "Route not found" }));
 app.use((err, req, res, next) => { console.error(err.stack); res.status(500).json({ error: "Internal server error" }); });
@@ -51,6 +53,34 @@ async function ensureSchema() {
   `);
   await db.query(`CREATE INDEX IF NOT EXISTS idx_events_date ON events(event_date)`);
   await db.query(`CREATE INDEX IF NOT EXISTS idx_events_user ON events(user_id)`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS role_title VARCHAR(200)`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS work_email VARCHAR(200)`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS company_website TEXT`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS registration_number VARCHAR(100)`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code VARCHAR(100)`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS admission_score INTEGER DEFAULT 0`);
+  await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS admission_status VARCHAR(30) DEFAULT 'more_verification'`);
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS user_blocks (
+      blocker_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      blocked_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      PRIMARY KEY (blocker_id, blocked_id),
+      CHECK (blocker_id != blocked_id)
+    )
+  `);
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS user_reports (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      reporter_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      reported_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      reason VARCHAR(100) NOT NULL,
+      details TEXT,
+      status VARCHAR(20) NOT NULL DEFAULT 'open',
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      CHECK (reporter_id != reported_user_id)
+    )
+  `);
 }
 
 const PORT = process.env.PORT || 5000;

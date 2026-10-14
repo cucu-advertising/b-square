@@ -60,6 +60,8 @@ export default function RootLayout() {
         <Stack.Screen name="login" />
         <Stack.Screen name="otp" />
         <Stack.Screen name="onboarding" />
+        <Stack.Screen name="eligibility" />
+        <Stack.Screen name="admission-status" />
         <Stack.Screen
           name="(tabs)"
           options={{ animation: 'fade', headerShown: false }}
