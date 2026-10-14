@@ -60,8 +60,7 @@ export default function OnboardingScreen() {
     : '??';
 
   const handleEnter = () => {
-    setOnboarded(true);
-    router.replace('/(tabs)/nearby');
+    router.push('/eligibility');
   };
 
   return (
