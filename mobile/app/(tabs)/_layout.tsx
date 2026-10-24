@@ -17,6 +17,7 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      screenListeners={{ tabPress: () => haptic('selection') }}
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
