@@ -25,8 +25,8 @@ router.post("/register",
       .matches(/^[6-9]\d{9}$/).withMessage("Valid 10-digit Indian phone number required"),
     body("password").isLength({ min: 8 }).withMessage("Password must be at least 8 characters"),
     body("city").trim().notEmpty().withMessage("City is required"),
-    body("lat").isFloat({ min: -90, max: 90 }).withMessage("Valid latitude required"),
-    body("lng").isFloat({ min: -180, max: 180 }).withMessage("Valid longitude required"),
+    body("lat").optional({ nullable: true }).isFloat({ min: -90, max: 90 }).withMessage("Invalid latitude"),
+    body("lng").optional({ nullable: true }).isFloat({ min: -180, max: 180 }).withMessage("Invalid longitude"),
     body("verificationType").isIn(["din", "linkedin", "succession"]).withMessage("Invalid verification type"),
   ],
   async (req, res) => {
@@ -78,7 +78,7 @@ router.post("/register",
           successionPrevDin?.trim() || null,
           successionNewDin?.trim() || null,
           successionDocNote?.trim() || null,
-          parseFloat(lat), parseFloat(lng), city,
+          lat == null ? null : parseFloat(lat), lng == null ? null : parseFloat(lng), city,
         ]
       );
 

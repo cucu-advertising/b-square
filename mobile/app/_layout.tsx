@@ -12,13 +12,17 @@ import {
 } from '@expo-google-fonts/ubuntu';
 import { useTheme, useThemeColors } from '../lib/theme';
 import { Toast } from '../components/Toast';
+import { useSession } from '../lib/session';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colors = useThemeColors();
   const theme = useTheme();
+  const hydrate = useSession(s => s.hydrate);
   const isWeb = Platform.OS === 'web';
+
+  useEffect(() => { void hydrate(); }, [hydrate]);
 
   const [fontsLoaded] = useFonts({
     Ubuntu_400Regular, Ubuntu_500Medium, Ubuntu_700Bold,
@@ -47,6 +51,9 @@ export default function RootLayout() {
       >
         <Stack.Screen name="index" options={{ animation: 'fade' }} />
         <Stack.Screen name="login" />
+        <Stack.Screen name="register" />
+        <Stack.Screen name="blocked" />
+        <Stack.Screen name="chat/[id]" />
         <Stack.Screen name="otp" />
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="eligibility" />

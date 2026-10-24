@@ -1,297 +1,36 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { VerifiedSeal } from '../../components/VerifiedSeal';
-import { GlassCard } from '../../components/GlassCard';
+import { useCallback, useState } from 'react';
+import { Alert, ScrollView, Text, TextInput, View } from 'react-native';
+import { useLocalSearchParams, useFocusEffect, useRouter } from 'expo-router';
+import { api, Member } from '../../lib/api';
+import { SectionHeading, LoadingState, MessageState } from '../../components/ScreenStates';
 import { ScalePressable } from '../../components/AnimatedUI';
-import { useThemeColors } from '../../lib/theme';
-import { NEARBY_BUSINESSES } from '../../lib/mockData';
-
-export default function ProfileDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const colors = useThemeColors();
-  const insets = useSafeAreaInsets();
-  const router = useRouter();
-
-  const profile = NEARBY_BUSINESSES.find((b) => b.id === id);
-
-  if (!profile) {
-    return (
-      <View style={[styles.notFound, { backgroundColor: colors.void }]}>
-        <Text style={{ color: colors.text }}>Profile not found</Text>
-      </View>
-    );
-  }
-
-  const facts = [
-    { label: 'INDUSTRY', value: profile.industry },
-    { label: 'FOUNDED', value: profile.founded },
-    { label: 'TEAM SIZE', value: profile.teamSize },
-    { label: 'DISTANCE', value: profile.distance },
-  ];
-
-  return (
-    <View style={[styles.container, { backgroundColor: colors.void }]}>
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <LinearGradient
-          colors={[colors.heroA, colors.heroB]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.hero, { paddingTop: insets.top + 12 }]}
-        >
-          <View
-            style={[
-              styles.glowBlob,
-              { backgroundColor: colors.glowSoft },
-            ]}
-          />
-
-          <ScalePressable
-            onPress={() => router.back()}
-            style={[
-              styles.backBtn,
-              {
-                backgroundColor: colors.glass,
-                borderColor: colors.glassBorder,
-              },
-            ]}
-            scaleTo={0.94}
-          >
-            <ArrowLeft size={20} color={colors.text} strokeWidth={1.75} />
-          </ScalePressable>
-
-          <View style={styles.heroContent}>
-            <View style={styles.nameRow}>
-              <View style={styles.nameBlock}>
-                <Text style={[styles.name, { color: colors.text }]}>{profile.name}</Text>
-                <Text style={[styles.role, { color: colors.textDim }]}>
-                  {profile.role}, {profile.business}
-                </Text>
-              </View>
-              <VerifiedSeal size={40} />
-            </View>
-
-            <View
-              style={[
-                styles.verifiedPill,
-                {
-                  backgroundColor: `${colors.accent}18`,
-                  borderColor: `${colors.accent}40`,
-                },
-              ]}
-            >
-              <Text style={[styles.verifiedText, { color: colors.accent }]}>
-                VERIFIED · GSTIN CHECKED
-              </Text>
-            </View>
-          </View>
-        </LinearGradient>
-
-        <View style={styles.body}>
-          <View style={styles.factGrid}>
-            {facts.map((fact) => (
-              <GlassCard key={fact.label} style={styles.factCard}>
-                <Text style={[styles.factLabel, { color: colors.textFaint }]}>{fact.label}</Text>
-                <Text style={[styles.factValue, { color: colors.text }]}>{fact.value}</Text>
-              </GlassCard>
-            ))}
-          </View>
-
-          <View
-            style={[
-              styles.offerBlock,
-              {
-                backgroundColor: colors.glass,
-                borderColor: colors.glassBorder,
-              },
-            ]}
-          >
-            <Text style={[styles.offerLabel, { color: colors.text }]}>Looking for</Text>
-            <Text style={[styles.offerText, { color: colors.textDim }]}>
-              {profile.lookingFor}
-            </Text>
-
-            <Text style={[styles.offerLabel, { color: colors.text, marginTop: 20 }]}>
-              Can offer
-            </Text>
-            <Text style={[styles.offerText, { color: colors.textDim }]}>
-              {profile.canOffer}
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
-
-      <View
-        style={[
-          styles.ctaRow,
-          {
-            paddingBottom: insets.bottom + 16,
-            backgroundColor: colors.void,
-            borderTopColor: colors.glassBorder,
-          },
-        ]}
-      >
-        <ScalePressable
-          style={[styles.ctaPrimary, { backgroundColor: colors.accent }]}
-          scaleTo={0.96}
-        >
-          <Text style={[styles.ctaPrimaryText, { color: colors.onAccent }]}>Request intro</Text>
-        </ScalePressable>
-        <ScalePressable
-          style={[
-            styles.ctaGhost,
-            {
-              backgroundColor: colors.glass,
-              borderColor: colors.glassBorder,
-            },
-          ]}
-          scaleTo={0.96}
-        >
-          <Text style={[styles.ctaGhostText, { color: colors.text }]}>Save</Text>
-        </ScalePressable>
-      </View>
+import { PrimaryButton } from '../../components/PrimaryButton';
+export default function MemberScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>(); const router = useRouter();
+  const [member, setMember] = useState<Member | null>(null); const [loading, setLoading] = useState(true); const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(''); const [reason, setReason] = useState(''); const [showReport, setShowReport] = useState(false);
+  const refresh = useCallback(async () => { if (!id) return; setLoading(true); try { const data = await api.member(id); setMember(data.user); setError(''); } catch (e) { setError(e instanceof Error ? e.message : 'Unable to fetch profile'); } finally { setLoading(false); } }, [id]);
+  useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
+  const action = async (what: 'connect' | 'block' | 'report') => { if (!id || busy) return; setBusy(true); setError(''); try {
+    if (what === 'connect') { await api.connect(id); await refresh(); }
+    if (what === 'block') { await api.block(id); router.replace('/(tabs)/nearby'); }
+    if (what === 'report') { if (reason.trim().length < 5) { setError('Please provide a reason of at least five characters.'); return; } await api.report(id, reason.trim()); setShowReport(false); setReason(''); Alert.alert('Report submitted', 'Our team will review your report.'); }
+  } catch (e) { setError(e instanceof Error ? e.message : 'Action failed'); } finally { setBusy(false); } };
+  const confirmBlock = () => Alert.alert('Block member?', 'Blocking removes your connection and prevents further contact.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Block', style: 'destructive', onPress: () => action('block') }]);
+  return <View style={{ flex: 1, backgroundColor: '#F8FAFE' }}><ScalePressable onPress={() => router.back()} style={{ paddingHorizontal: 24, paddingTop: 35, paddingBottom: 5 }}><Text style={{ color: '#234FC8', fontFamily: 'Ubuntu_500Medium' }}>← Back</Text></ScalePressable>{loading ? <LoadingState /> : error && !member ? <MessageState message={error} retry={refresh} /> : member ? <ScrollView contentContainerStyle={{ paddingBottom: 55 }}>
+    <SectionHeading title={member.name} subtitle={[member.company_name, member.industry].filter(Boolean).join(' · ') || 'Approved B Square member'} />
+    <View style={{ paddingHorizontal: 24, gap: 14 }}>
+      <Text style={{ fontFamily: 'Ubuntu_500Medium', color: '#234FC8', fontSize: 12 }}>{member.verification_status === 'approved' ? 'MANUALLY APPROVED MEMBER' : 'MEMBER'}</Text>
+      {member.headline ? <Text style={{ fontFamily: 'Ubuntu_500Medium', color: '#102758', fontSize: 17 }}>{member.headline}</Text> : null}
+      {member.bio ? <Text style={{ fontFamily: 'Ubuntu_400Regular', color: '#61718D', fontSize: 15, lineHeight: 24 }}>{member.bio}</Text> : null}
+      {member.city ? <Text style={{ color: '#61718D' }}>City: {member.city}</Text> : null}
+      {member.email ? <Text style={{ color: '#61718D' }}>Email: {member.email}</Text> : null}
+      {member.phone ? <Text style={{ color: '#61718D' }}>Phone: {member.phone}</Text> : null}
+      {error ? <Text style={{ color: '#A52D38' }}>{error}</Text> : null}
+      {member.connection_status === 'connected' ? <PrimaryButton label="Message" onPress={() => router.push(`/chat/${id}`)} /> : <PrimaryButton label={member.connection_status === 'request_sent' ? 'Request pending' : member.connection_status === 'request_received' ? 'See requests' : busy ? 'Sending...' : 'Request connection'} disabled={busy || member.connection_status === 'request_sent'} onPress={() => member.connection_status === 'request_received' ? router.push('/(tabs)/requests') : action('connect')} />}
+      <ScalePressable onPress={() => setShowReport(old => !old)} style={{ marginTop: 28, paddingVertical: 10 }}><Text style={{ color: '#526789', fontFamily: 'Ubuntu_500Medium' }}>Report member</Text></ScalePressable>
+      {showReport ? <View style={{ gap: 12 }}><TextInput multiline value={reason} onChangeText={setReason} placeholder="Reason for your report (required)" maxLength={500} style={{ backgroundColor: 'white', borderWidth: 1, borderColor: '#DDE5F3', borderRadius: 12, padding: 14, minHeight: 95, textAlignVertical: 'top', color: '#102758' }} /><PrimaryButton label="Submit report" disabled={busy || reason.trim().length < 5} onPress={() => action('report')} /></View> : null}
+      <ScalePressable onPress={confirmBlock} style={{ paddingVertical: 12 }}><Text style={{ color: '#A52D38', fontFamily: 'Ubuntu_500Medium' }}>Block member</Text></ScalePressable>
     </View>
-  );
+  </ScrollView> : <MessageState message="Profile unavailable" />}</View>;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  notFound: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  hero: {
-    paddingHorizontal: 20,
-    paddingBottom: 28,
-    overflow: 'hidden',
-  },
-  glowBlob: {
-    position: 'absolute',
-    top: -40,
-    right: -20,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    opacity: 0.6,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  heroContent: {
-    gap: 16,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  nameBlock: {
-    flex: 1,
-    paddingRight: 16,
-    gap: 4,
-  },
-  name: {
-    fontFamily: 'Ubuntu_700Bold',
-    fontSize: 28,
-  },
-  role: {
-    fontFamily: 'Ubuntu_400Regular',
-    fontSize: 15,
-  },
-  verifiedPill: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  verifiedText: {
-    fontFamily: 'Ubuntu_500Medium',
-    fontSize: 10,
-    letterSpacing: 1.2,
-  },
-  body: {
-    padding: 20,
-    gap: 20,
-  },
-  factGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  factCard: {
-    width: '47%',
-    padding: 14,
-    gap: 6,
-  },
-  factLabel: {
-    fontFamily: 'Ubuntu_400Regular',
-    fontSize: 10,
-    letterSpacing: 1.2,
-  },
-  factValue: {
-    fontFamily: 'Ubuntu_700Bold',
-    fontSize: 16,
-  },
-  offerBlock: {
-    borderWidth: 1,
-    borderRadius: 18,
-    padding: 20,
-  },
-  offerLabel: {
-    fontFamily: 'Ubuntu_700Bold',
-    fontSize: 14,
-    marginBottom: 6,
-  },
-  offerText: {
-    fontFamily: 'Ubuntu_400Regular',
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  ctaRow: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    gap: 12,
-    borderTopWidth: 1,
-  },
-  ctaPrimary: {
-    flex: 1,
-    paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: 'center',
-  },
-  ctaPrimaryText: {
-    fontFamily: 'Ubuntu_700Bold',
-    fontSize: 15,
-  },
-  ctaGhost: {
-    paddingVertical: 16,
-    paddingHorizontal: 28,
-    borderRadius: 14,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  ctaGhostText: {
-    fontFamily: 'Ubuntu_500Medium',
-    fontSize: 15,
-  },
-});

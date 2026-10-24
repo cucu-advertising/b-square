@@ -12,6 +12,9 @@ app.set("trust proxy", 1);
   app.use(cors({
   origin: [
     "http://localhost:3000",
+    "http://localhost:8081",
+    "http://localhost:19006",
+    ...(process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(",").map(x => x.trim()).filter(Boolean) : []),
     "https://astonishing-arithmetic-d290b1.netlify.app"
   ],
   credentials: true

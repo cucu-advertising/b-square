@@ -97,4 +97,16 @@ router.put("/users/:userId/deactivate", async (req, res) => {
   } catch (err) { return res.status(500).json({ error: "Failed to deactivate" }); }
 });
 
+router.get('/reports', async (req, res) => {
+  try {
+    const { rows } = await db.query("SELECT r.id,r.reason,r.details,r.status,r.created_at,r.reporter_id,reporter.name AS reporter_name,r.reported_user_id,reported.name AS reported_name FROM user_reports r LEFT JOIN users reporter ON reporter.id=r.reporter_id LEFT JOIN users reported ON reported.id=r.reported_user_id ORDER BY CASE WHEN r.status='open' THEN 0 ELSE 1 END,r.created_at DESC LIMIT 200");
+    res.json({ reports: rows });
+  } catch { res.status(500).json({ error:'Could not load reports' }); }
+});
+router.put('/reports/:id/resolve', async (req,res) => {
+  if (!/^[0-9a-f-]{36}$/i.test(req.params.id)) return res.status(400).json({ error:'Invalid report ID' });
+  try { const {rows} = await db.query("UPDATE user_reports SET status='resolved' WHERE id=$1 RETURNING id",[req.params.id]);
+    return rows.length ? res.json({message:'Report resolved'}) : res.status(404).json({error:'Report not found'});
+  } catch { return res.status(500).json({error:'Could not resolve report'}); }
+});
 module.exports = router;

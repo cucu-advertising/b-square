@@ -1,156 +1,29 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Clock, MapPin, Pencil } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { VerifiedSeal } from '../../components/VerifiedSeal';
+import { useState } from 'react';
+import { Alert, ScrollView, Text, TextInput, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { PrimaryButton } from '../../components/PrimaryButton';
 import { ScalePressable } from '../../components/AnimatedUI';
-import { useThemeColors } from '../../lib/theme';
-import { SELF_PROFILE } from '../../lib/mockData';
-import { useAuthStore } from '../../lib/store';
-
+import { SectionHeading } from '../../components/ScreenStates';
+import { api } from '../../lib/api';
+import { useSession } from '../../lib/session';
 export default function ProfileScreen() {
-  const colors = useThemeColors();
-  const insets = useSafeAreaInsets();
-  const businessName = useAuthStore((s) => s.businessName);
-  const displayBusiness = businessName || SELF_PROFILE.business;
-
-  const menuItems = [
-    { icon: Pencil, label: 'Edit business card', value: 'Update' },
-    { icon: MapPin, label: 'Networking radius', value: SELF_PROFILE.networkingRadius },
-    { icon: Clock, label: 'Active hours', value: SELF_PROFILE.activeHours },
-  ];
-
-  return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.void }]}
-      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
-    >
-      <LinearGradient
-        colors={[colors.heroA, colors.heroB]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.hero, { paddingTop: insets.top + 24 }]}
-      >
-        <View style={styles.sealWrap}>
-          <VerifiedSeal size={36} />
-        </View>
-
-        <Text style={[styles.name, { color: colors.text }]}>{SELF_PROFILE.name}</Text>
-        <Text style={[styles.role, { color: colors.textDim }]}>
-          {SELF_PROFILE.role}, {displayBusiness}
-        </Text>
-
-        <View style={styles.stats}>
-          <StatBlock
-            value={String(SELF_PROFILE.connections)}
-            label="CONNECTIONS"
-            colors={colors}
-          />
-          <StatBlock value={String(SELF_PROFILE.introsMade)} label="INTROS MADE" colors={colors} />
-          <StatBlock value={String(SELF_PROFILE.trustScore)} label="TRUST SCORE" colors={colors} />
-        </View>
-      </LinearGradient>
-
-      <View style={styles.menu}>
-        {menuItems.map((item, index) => (
-          <ScalePressable
-            key={item.label}
-            style={[
-              styles.menuRow,
-              {
-                borderBottomColor: colors.glassBorder,
-                borderBottomWidth: index < menuItems.length - 1 ? 1 : 0,
-              },
-            ]}
-            scaleTo={0.98}
-          >
-            <item.icon size={20} color={colors.textDim} strokeWidth={1.75} />
-            <Text style={[styles.menuLabel, { color: colors.text }]}>{item.label}</Text>
-            <Text style={[styles.menuValue, { color: colors.textFaint }]}>{item.value}</Text>
-            <ChevronRight size={18} color={colors.textFaint} strokeWidth={1.75} />
-          </ScalePressable>
-        ))}
-      </View>
-    </ScrollView>
-  );
+  const router = useRouter(); const { user, signOut, updateUser } = useSession();
+  const [name, setName] = useState(user?.name || ''); const [bio, setBio] = useState(user?.bio || '');
+  const [saving, setSaving] = useState(false); const [error, setError] = useState('');
+  const save = async () => { setSaving(true); setError(''); try { const data = await api.updateMe({ name, bio }); updateUser(data.user); Alert.alert('Saved', 'Your profile has been updated.'); } catch (e) { setError(e instanceof Error ? e.message : 'Unable to update profile'); } finally { setSaving(false); } };
+  const logout = async () => { await signOut(); router.replace('/login'); };
+  const deleteAccount = () => Alert.alert('Permanently delete account?', 'This will permanently delete your account and associated account information. This cannot be undone.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete permanently', style: 'destructive', onPress: async () => { try { await api.deleteAccount(); await signOut(); router.replace('/login'); } catch (e) { setError(e instanceof Error ? e.message : 'Deletion failed. Please try again.'); } } }]);
+  return <ScrollView style={{ flex: 1, backgroundColor: '#F8FAFE' }} contentContainerStyle={{ paddingBottom: 65 }}><SectionHeading title="My profile" subtitle={user?.company_name || 'Your B Square membership'} /><View style={{ paddingHorizontal: 24, gap: 14 }}>
+    <Text style={{ color: '#234FC8', fontFamily: 'Ubuntu_500Medium', fontSize: 12 }}>APPROVED MEMBER</Text>
+    <Text style={{ color: '#526789', fontFamily: 'Ubuntu_500Medium', marginTop: 14 }}>Name</Text>
+    <TextInput value={name} onChangeText={setName} style={{ borderWidth: 1, borderColor: '#DDE5F3', borderRadius: 14, backgroundColor: 'white', padding: 15, fontFamily: 'Ubuntu_400Regular', color: '#102758', fontSize: 16 }} />
+    <Text style={{ color: '#526789', fontFamily: 'Ubuntu_500Medium' }}>About your business</Text>
+    <TextInput multiline value={bio} onChangeText={setBio} maxLength={1500} placeholder="What should other members know?" style={{ textAlignVertical: 'top', borderWidth: 1, borderColor: '#DDE5F3', borderRadius: 14, backgroundColor: 'white', minHeight: 98, padding: 15, fontFamily: 'Ubuntu_400Regular', color: '#102758', fontSize: 15 }} />
+    {user?.email ? <Text style={{ color: '#62728C' }}>Email: {user.email}</Text> : null}
+    {error ? <Text style={{ color: '#A52D38' }}>{error}</Text> : null}
+    <PrimaryButton label={saving ? 'Saving...' : 'Save changes'} disabled={saving || !name.trim()} onPress={save} />
+    <ScalePressable onPress={() => router.push('/blocked')} style={{ marginTop: 25, paddingVertical: 12 }}><Text style={{ color: '#102758', fontFamily: 'Ubuntu_500Medium' }}>Blocked members →</Text></ScalePressable>
+    <ScalePressable onPress={logout} style={{ paddingVertical: 12 }}><Text style={{ color: '#234FC8', fontFamily: 'Ubuntu_500Medium' }}>Sign out</Text></ScalePressable>
+    <ScalePressable onPress={deleteAccount} style={{ paddingVertical: 12 }}><Text style={{ color: '#A52D38', fontFamily: 'Ubuntu_500Medium' }}>Delete my account permanently</Text></ScalePressable>
+  </View></ScrollView>;
 }
-
-function StatBlock({
-  value,
-  label,
-  colors,
-}: {
-  value: string;
-  label: string;
-  colors: ReturnType<typeof useThemeColors>;
-}) {
-  return (
-    <View style={styles.stat}>
-      <Text style={[styles.statValue, { color: colors.accent }]}>{value}</Text>
-      <Text style={[styles.statLabel, { color: colors.textFaint }]}>{label}</Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  hero: {
-    paddingHorizontal: 24,
-    paddingBottom: 28,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  sealWrap: {
-    alignSelf: 'flex-end',
-    marginBottom: 8,
-  },
-  name: {
-    fontFamily: 'Ubuntu_700Bold',
-    fontSize: 28,
-  },
-  role: {
-    fontFamily: 'Ubuntu_400Regular',
-    fontSize: 15,
-    marginTop: 4,
-  },
-  stats: {
-    flexDirection: 'row',
-    marginTop: 24,
-    gap: 8,
-  },
-  stat: {
-    flex: 1,
-    gap: 4,
-  },
-  statValue: {
-    fontFamily: 'Ubuntu_700Bold',
-    fontSize: 22,
-  },
-  statLabel: {
-    fontFamily: 'Ubuntu_400Regular',
-    fontSize: 9,
-    letterSpacing: 1.2,
-  },
-  menu: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-  },
-  menuRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 18,
-    gap: 14,
-  },
-  menuLabel: {
-    flex: 1,
-    fontFamily: 'Ubuntu_500Medium',
-    fontSize: 15,
-  },
-  menuValue: {
-    fontFamily: 'Ubuntu_400Regular',
-    fontSize: 14,
-    marginRight: 4,
-  },
-});
