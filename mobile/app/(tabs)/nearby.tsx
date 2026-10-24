@@ -67,14 +67,17 @@ const styles = StyleSheet.create({
   },
   wordmark: {
     fontFamily: 'Ubuntu_700Bold',
-    fontSize: 28,
+    fontSize: 20,
+    letterSpacing: 1.6,
+    flexShrink: 1,
   },
   locationPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 8,
+    flexShrink: 1,
     borderRadius: 999,
     borderWidth: 1,
   },
@@ -86,7 +89,8 @@ const styles = StyleSheet.create({
   locationText: {
     fontFamily: 'Ubuntu_500Medium',
     fontSize: 11,
-    letterSpacing: 1.4,
+    letterSpacing: 0.3,
+    flexShrink: 1,
   },
   sectionRow: {
     flexDirection: 'row',
