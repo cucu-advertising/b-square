@@ -1,174 +1,34 @@
 import { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
-import { useThemeColors } from '../lib/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useReducedMotion } from '../hooks/useReducedMotion';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 
-export default function SplashScreen() {
-  const colors = useThemeColors();
+export default function FirstLaunch() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
-
-  const logoScale = useSharedValue(1);
-  const glowOpacity = useSharedValue(0.35);
-  const ringScale = useSharedValue(1);
-  const ringOpacity = useSharedValue(0.5);
-  const sealRotation = useSharedValue(0);
-
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.replace('/login');
-    }, 1800);
-    return () => clearTimeout(timer);
-  }, [router]);
-
-  useEffect(() => {
-    if (reduceMotion) return;
-
-    logoScale.value = withRepeat(
-      withSequence(
-        withTiming(1.04, { duration: 1100, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 1100, easing: Easing.inOut(Easing.ease) }),
-      ),
-      -1,
-    );
-
-    glowOpacity.value = withRepeat(
-      withSequence(
-        withTiming(0.65, { duration: 1100, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0.25, { duration: 1100, easing: Easing.inOut(Easing.ease) }),
-      ),
-      -1,
-    );
-
-    ringScale.value = withRepeat(
-      withSequence(
-        withTiming(1.35, { duration: 2200, easing: Easing.out(Easing.ease) }),
-        withTiming(1, { duration: 0 }),
-      ),
-      -1,
-    );
-
-    ringOpacity.value = withRepeat(
-      withSequence(
-        withTiming(0, { duration: 2200, easing: Easing.out(Easing.ease) }),
-        withTiming(0.5, { duration: 0 }),
-      ),
-      -1,
-    );
-
-    sealRotation.value = withRepeat(
-      withTiming(360, { duration: 8000, easing: Easing.linear }),
-      -1,
-    );
-  }, [reduceMotion, logoScale, glowOpacity, ringScale, ringOpacity, sealRotation]);
-
-  const logoStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: logoScale.value }],
-    shadowOpacity: glowOpacity.value,
-  }));
-
-  const ringStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: ringScale.value }],
-    opacity: ringOpacity.value,
-  }));
-
-  const decorativeRingStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${sealRotation.value}deg` }],
-  }));
-
-  return (
-    <View style={[styles.container, { backgroundColor: colors.void }]}>
-      <Animated.View
-        style={[
-          styles.decorativeRing,
-          {
-            width: 180,
-            height: 180,
-            borderRadius: 90,
-          },
-          decorativeRingStyle,
-        ]}
-      >
-        <LinearGradient
-          colors={[colors.holoA, colors.holoB, colors.accent, colors.gradientEnd, colors.holoA]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-      </Animated.View>
-
-      <Animated.View
-        style={[
-          styles.ring,
-          { borderColor: colors.gradientStart },
-          ringStyle,
-        ]}
-      />
-
-      <Animated.View
-        style={[
-          styles.logoShadow,
-          {
-            shadowColor: colors.gradientStart,
-          },
-          logoStyle,
-        ]}
-      >
-        <LinearGradient
-          colors={[colors.gradientStart, colors.gradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.logo}
-        >
-          <Text style={[styles.wordmark, { color: colors.text }]}>B²</Text>
-        </LinearGradient>
-      </Animated.View>
+    const timeout = setTimeout(() => router.replace('/login'), reduceMotion ? 1500 : 2400);
+    return () => clearTimeout(timeout);
+  }, [router, reduceMotion]);
+  return <LinearGradient colors={['#FFFFFF','#F8FAFE','#DCE9FF']} locations={[0,0.66,1]} style={[styles.container,{paddingTop:insets.top+38,paddingBottom:insets.bottom+46}]}>
+    <Text style={styles.wordmark}>B SQUARE</Text>
+    <View style={styles.copy}>
+      <Animated.Text entering={reduceMotion ? undefined : FadeInUp.duration(650)} style={styles.heading}>
+        Your next big opportunity begins with <Text style={styles.blue}>one connection.</Text>
+      </Animated.Text>
+      <Text style={styles.body}>A private network for ambitious founders, entrepreneurs and business leaders.</Text>
     </View>
-  );
+    <Text style={styles.caption}>A BETTER WAY TO CONNECT</Text>
+  </LinearGradient>;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  decorativeRing: {
-    position: 'absolute',
-    overflow: 'hidden',
-    opacity: 0.25,
-  },
-  ring: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 1.5,
-  },
-  logoShadow: {
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 28,
-    elevation: 12,
-  },
-  logo: {
-    width: 88,
-    height: 88,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  wordmark: {
-    fontFamily: 'SpaceGrotesk_700Bold',
-    fontSize: 36,
-  },
+const styles=StyleSheet.create({
+  container:{flex:1,paddingHorizontal:32,justifyContent:'space-between'},
+  wordmark:{fontFamily:'Ubuntu_700Bold',fontSize:15,letterSpacing:4,color:'#102758'},
+  copy:{gap:22},heading:{fontFamily:'Ubuntu_700Bold',fontSize:43,lineHeight:52,letterSpacing:-1.8,color:'#18243A'},
+  blue:{color:'#234FC8'},body:{fontFamily:'Ubuntu_400Regular',fontSize:16,lineHeight:26,color:'#62728C',maxWidth:310},
+  caption:{fontFamily:'Ubuntu_500Medium',fontSize:11,letterSpacing:2,color:'#234FC8'},
 });
