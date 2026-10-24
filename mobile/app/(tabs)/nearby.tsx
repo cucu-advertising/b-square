@@ -12,7 +12,7 @@ export default function NearbyScreen() {
     <View style={[styles.container, { backgroundColor: colors.void }]}>
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <View style={styles.headerTop}>
-          <Text style={[styles.wordmark, { color: colors.text }]}>B²</Text>
+          <Text style={[styles.wordmark, { color: colors.text }]}>B SQUARE</Text>
           <View
             style={[
               styles.locationPill,
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   wordmark: {
-    fontFamily: 'SpaceGrotesk_700Bold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 28,
   },
   locationPill: {
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   locationText: {
-    fontFamily: 'JetBrainsMono_500Medium',
+    fontFamily: 'Ubuntu_500Medium',
     fontSize: 11,
     letterSpacing: 1.4,
   },
@@ -94,12 +94,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sectionLabel: {
-    fontFamily: 'JetBrainsMono_500Medium',
+    fontFamily: 'Ubuntu_500Medium',
     fontSize: 11,
     letterSpacing: 1.6,
   },
   sectionCount: {
-    fontFamily: 'JetBrainsMono_400Regular',
+    fontFamily: 'Ubuntu_400Regular',
     fontSize: 11,
     letterSpacing: 0.8,
   },

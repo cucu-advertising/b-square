@@ -152,11 +152,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontFamily: 'SpaceGrotesk_700Bold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 28,
   },
   subtitle: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Ubuntu_400Regular',
     fontSize: 14,
   },
   list: {
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   initials: {
-    fontFamily: 'SpaceGrotesk_600SemiBold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 14,
   },
   content: {
@@ -187,15 +187,15 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   name: {
-    fontFamily: 'SpaceGrotesk_600SemiBold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 16,
   },
   role: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Ubuntu_400Regular',
     fontSize: 13,
   },
   message: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Ubuntu_400Regular',
     fontSize: 13,
     fontStyle: 'italic',
     marginTop: 6,
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     paddingTop: 80,
   },
   emptyText: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Ubuntu_500Medium',
     fontSize: 16,
   },
 });

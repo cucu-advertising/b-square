@@ -87,11 +87,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   name: {
-    fontFamily: 'SpaceGrotesk_600SemiBold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 18,
   },
   role: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Ubuntu_400Regular',
     fontSize: 14,
   },
   metaRow: {
@@ -105,11 +105,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   industryText: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Ubuntu_500Medium',
     fontSize: 12,
   },
   distance: {
-    fontFamily: 'JetBrainsMono_500Medium',
+    fontFamily: 'Ubuntu_500Medium',
     fontSize: 11,
     letterSpacing: 1.2,
   },
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   connectText: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 14,
   },
 });
