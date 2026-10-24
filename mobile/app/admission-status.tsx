@@ -76,11 +76,11 @@ export default function AdmissionStatusScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 24, justifyContent: 'space-between' },
   content: { gap: 18 },
-  eyebrow: { fontFamily: 'JetBrainsMono_500Medium', fontSize: 11, letterSpacing: 2 },
-  title: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 32, lineHeight: 38 },
-  body: { fontFamily: 'Inter_400Regular', fontSize: 16, lineHeight: 24 },
+  eyebrow: { fontFamily: 'Ubuntu_500Medium', fontSize: 11, letterSpacing: 2 },
+  title: { fontFamily: 'Ubuntu_700Bold', fontSize: 32, lineHeight: 38 },
+  body: { fontFamily: 'Ubuntu_400Regular', fontSize: 16, lineHeight: 24 },
   scoreCard: { borderWidth: 1, borderRadius: 18, padding: 20, gap: 8, marginTop: 8 },
-  scoreLabel: { fontFamily: 'JetBrainsMono_400Regular', fontSize: 10, letterSpacing: 1.5 },
-  score: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 34 },
-  reason: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19 },
+  scoreLabel: { fontFamily: 'Ubuntu_400Regular', fontSize: 10, letterSpacing: 1.5 },
+  score: { fontFamily: 'Ubuntu_700Bold', fontSize: 34 },
+  reason: { fontFamily: 'Ubuntu_400Regular', fontSize: 13, lineHeight: 19 },
 });

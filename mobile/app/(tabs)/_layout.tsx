@@ -7,6 +7,7 @@ import {
   User,
 } from 'lucide-react-native';
 import { View, StyleSheet } from 'react-native';
+import { haptic } from '../../lib/haptics';
 import { useThemeColors } from '../../lib/theme';
 import { useRequestsStore } from '../../lib/store';
 
@@ -16,23 +17,25 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      screenListeners={{ tabPress: () => haptic('selection') }}
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.surface,
+          backgroundColor: '#FFFFFF',
           borderTopColor: colors.glassBorder,
           borderTopWidth: 1,
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 8,
+          height: 72,
+          paddingBottom: 12,
+          paddingTop: 10,
         },
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textFaint,
         tabBarLabelStyle: {
-          fontFamily: 'Inter_500Medium',
+          fontFamily: 'Ubuntu_500Medium',
           fontSize: 11,
         },
-        animation: 'none',
+        animation: 'fade',
+        tabBarItemStyle: { borderRadius: 18 },
       }}
     >
       <Tabs.Screen
@@ -76,6 +79,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="palette"
         options={{
+          href: null,
           title: 'Palette',
           tabBarIcon: ({ color, size }) => <Palette color={color} size={size} strokeWidth={1.75} />,
         }}

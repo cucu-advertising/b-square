@@ -185,17 +185,17 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   eyebrow: {
-    fontFamily: 'JetBrainsMono_500Medium',
+    fontFamily: 'Ubuntu_500Medium',
     fontSize: 12,
     letterSpacing: 2.4,
   },
   headline: {
-    fontFamily: 'SpaceGrotesk_700Bold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 32,
     lineHeight: 38,
   },
   subtext: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Ubuntu_400Regular',
     fontSize: 16,
     lineHeight: 24,
   },
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   otpDigit: {
-    fontFamily: 'SpaceGrotesk_700Bold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 28,
   },
   hiddenInput: {
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     opacity: 0,
   },
   resend: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Ubuntu_500Medium',
     fontSize: 15,
     textAlign: 'center',
     marginTop: 20,

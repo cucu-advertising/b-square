@@ -5,18 +5,10 @@ import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import {
   useFonts,
-  SpaceGrotesk_600SemiBold,
-  SpaceGrotesk_700Bold,
-} from '@expo-google-fonts/space-grotesk';
-import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-} from '@expo-google-fonts/inter';
-import {
-  JetBrainsMono_400Regular,
-  JetBrainsMono_500Medium,
-} from '@expo-google-fonts/jetbrains-mono';
+  Ubuntu_400Regular,
+  Ubuntu_500Medium,
+  Ubuntu_700Bold,
+} from '@expo-google-fonts/ubuntu';
 import { useTheme, useThemeColors } from '../lib/theme';
 import { Toast } from '../components/Toast';
 
@@ -27,13 +19,7 @@ export default function RootLayout() {
   const theme = useTheme();
 
   const [fontsLoaded] = useFonts({
-    SpaceGrotesk_600SemiBold,
-    SpaceGrotesk_700Bold,
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    JetBrainsMono_400Regular,
-    JetBrainsMono_500Medium,
+    Ubuntu_400Regular, Ubuntu_500Medium, Ubuntu_700Bold,
   });
 
   useEffect(() => {
@@ -48,12 +34,12 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.void }}>
-      <StatusBar style={theme.key === 'arctic' ? 'dark' : 'light'} />
+      <StatusBar style={'dark'} />
       <Stack
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: colors.void },
-          animation: 'slide_from_right',
+          animation: 'fade_from_bottom',
         }}
       >
         <Stack.Screen name="index" options={{ animation: 'fade' }} />

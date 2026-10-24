@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   title: {
-    fontFamily: 'SpaceGrotesk_700Bold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 28,
   },
   row: {
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   initials: {
-    fontFamily: 'SpaceGrotesk_600SemiBold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 15,
   },
   content: {
@@ -114,11 +114,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   name: {
-    fontFamily: 'SpaceGrotesk_600SemiBold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 16,
   },
   time: {
-    fontFamily: 'JetBrainsMono_400Regular',
+    fontFamily: 'Ubuntu_400Regular',
     fontSize: 11,
     letterSpacing: 0.5,
   },
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   },
   preview: {
     flex: 1,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Ubuntu_400Regular',
     fontSize: 14,
   },
   badge: {
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   badgeText: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 11,
   },
 });

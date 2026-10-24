@@ -107,11 +107,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   name: {
-    fontFamily: 'SpaceGrotesk_700Bold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 28,
   },
   role: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Ubuntu_400Regular',
     fontSize: 15,
     marginTop: 4,
   },
@@ -125,11 +125,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   statValue: {
-    fontFamily: 'SpaceGrotesk_700Bold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 22,
   },
   statLabel: {
-    fontFamily: 'JetBrainsMono_400Regular',
+    fontFamily: 'Ubuntu_400Regular',
     fontSize: 9,
     letterSpacing: 1.2,
   },
@@ -145,11 +145,11 @@ const styles = StyleSheet.create({
   },
   menuLabel: {
     flex: 1,
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Ubuntu_500Medium',
     fontSize: 15,
   },
   menuValue: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Ubuntu_400Regular',
     fontSize: 14,
     marginRight: 4,
   },

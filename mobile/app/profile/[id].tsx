@@ -205,11 +205,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   name: {
-    fontFamily: 'SpaceGrotesk_700Bold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 28,
   },
   role: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Ubuntu_400Regular',
     fontSize: 15,
   },
   verifiedPill: {
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   verifiedText: {
-    fontFamily: 'JetBrainsMono_500Medium',
+    fontFamily: 'Ubuntu_500Medium',
     fontSize: 10,
     letterSpacing: 1.2,
   },
@@ -239,12 +239,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   factLabel: {
-    fontFamily: 'JetBrainsMono_400Regular',
+    fontFamily: 'Ubuntu_400Regular',
     fontSize: 10,
     letterSpacing: 1.2,
   },
   factValue: {
-    fontFamily: 'SpaceGrotesk_600SemiBold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 16,
   },
   offerBlock: {
@@ -253,12 +253,12 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   offerLabel: {
-    fontFamily: 'SpaceGrotesk_600SemiBold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 14,
     marginBottom: 6,
   },
   offerText: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Ubuntu_400Regular',
     fontSize: 15,
     lineHeight: 22,
   },
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ctaPrimaryText: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 15,
   },
   ctaGhost: {
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ctaGhostText: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Ubuntu_500Medium',
     fontSize: 15,
   },
 });

@@ -1,260 +1,97 @@
-import { useEffect } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { useState } from 'react';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
-import { PrimaryButton } from '../components/PrimaryButton';
+import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated';
 import { ScalePressable } from '../components/AnimatedUI';
-import { useThemeColors } from '../lib/theme';
+import { PrimaryButton } from '../components/PrimaryButton';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useAuthStore } from '../lib/store';
 import { INDUSTRIES } from '../lib/mockData';
-import { useReducedMotion } from '../hooks/useReducedMotion';
+import { haptic } from '../lib/haptics';
 
+const prompts = [
+  { eyebrow: 'YOUR AMBITION', lead: 'I want B Square to help me...', answers: ['grow my business.', 'find the right people.', 'learn from other founders.', 'open new doors.'], response: 'Your next connection should move you forward.' },
+  { eyebrow: 'YOUR PEOPLE', lead: 'The people I want to meet are...', answers: ['founders building serious companies.', 'investors and strategic partners.', 'operators who know how to scale.', 'people who think like I do.'], response: 'We will shape discovery around your interests.' },
+  { eyebrow: 'YOUR STYLE', lead: 'The conversations I value most are...', answers: ['honest and direct.', 'thoughtful and long-term.', 'practical and opportunity-led.', 'a mix of everything.'], response: 'Good connections start with good conversations.' },
+];
 export default function OnboardingScreen() {
-  const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const reduceMotion = useReducedMotion();
-  const businessName = useAuthStore((s) => s.businessName);
-  const setBusinessName = useAuthStore((s) => s.setBusinessName);
-  const industry = useAuthStore((s) => s.industry);
-  const setIndustry = useAuthStore((s) => s.setIndustry);
-  const setOnboarded = useAuthStore((s) => s.setOnboarded);
-
-  const rotation = useSharedValue(0);
-
-  useEffect(() => {
-    if (reduceMotion) return;
-    rotation.value = withRepeat(
-      withTiming(360, { duration: 6000, easing: Easing.linear }),
-      -1,
-    );
-  }, [reduceMotion, rotation]);
-
-  const avatarRingStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotation.value}deg` }],
-  }));
-
-  const initials = businessName
-    ? businessName
-        .split(' ')
-        .map((w) => w[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase()
-    : '??';
-
-  const handleEnter = () => {
-    router.push('/eligibility');
+  const businessName = useAuthStore(s => s.businessName);
+  const setBusinessName = useAuthStore(s => s.setBusinessName);
+  const industry = useAuthStore(s => s.industry);
+  const setIndustry = useAuthStore(s => s.setIndustry);
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState<string[]>(['','','']);
+  const [showResponse, setShowResponse] = useState(false);
+  const question = prompts[step];
+  const choose = (answer: string) => {
+    haptic('selection');
+    setAnswers(old => old.map((v,i) => i === step ? answer : v));
+    setShowResponse(true);
   };
-
-  return (
-    <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.void }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        contentContainerStyle={[
-          styles.scroll,
-          { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 24 },
-        ]}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.dots}>
-          <View style={[styles.dot, { backgroundColor: colors.accent }]} />
-          <View style={[styles.dot, { backgroundColor: colors.accent }]} />
-          <View style={[styles.dot, { backgroundColor: colors.textFaint }]} />
+  const advance = () => {
+    haptic('medium');
+    if (step < 3) { setStep(s => s+1); setShowResponse(false); }
+    else router.push('/eligibility');
+  };
+  return <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{flex:1}}>
+    <LinearGradient colors={['#FFFFFF','#F8FAFE','#E6EFFF']} locations={[0,0.7,1]} style={{flex:1}}>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.scroll,{paddingTop:insets.top+32,paddingBottom:insets.bottom+32}]}>
+        <View style={styles.header}>
+          <Text style={styles.brand}>B SQUARE</Text>
+          <Text style={styles.counter}>{String(step+1).padStart(2,'0')} / 04</Text>
         </View>
-
-        <Text style={[styles.title, { color: colors.text }]}>Build your card</Text>
-        <Text style={[styles.subtitle, { color: colors.textDim }]}>
-          This is how other verified owners will discover you nearby.
-        </Text>
-
-        <View style={styles.avatarContainer}>
-          <Animated.View style={[styles.avatarRing, avatarRingStyle]}>
-            <LinearGradient
-              colors={[colors.holoA, colors.holoB, colors.accent, colors.gradientEnd, colors.holoA]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFill}
-            />
-          </Animated.View>
-          <View style={[styles.avatarInner, { backgroundColor: colors.voidAlt }]}>
-            <Text style={[styles.initials, { color: colors.text }]}>{initials}</Text>
-          </View>
-        </View>
-
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textFaint }]}>BUSINESS NAME</Text>
-          <TextInput
-            value={businessName}
-            onChangeText={setBusinessName}
-            placeholder="Your company name"
-            placeholderTextColor={colors.textFaint}
-            style={[
-              styles.input,
-              {
-                color: colors.text,
-                backgroundColor: colors.glass,
-                borderColor: colors.glassBorder,
-              },
-            ]}
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textFaint }]}>INDUSTRY</Text>
-          <View style={styles.chips}>
-            {INDUSTRIES.map((item) => {
-              const selected = industry === item;
-              return (
-                <ScalePressable
-                  key={item}
-                  onPress={() => setIndustry(item)}
-                  style={styles.chipWrapper}
-                  scaleTo={0.96}
-                >
-                  {selected ? (
-                    <LinearGradient
-                      colors={[colors.gradientStart, colors.gradientEnd]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.chip}
-                    >
-                      <Text style={[styles.chipText, { color: colors.onAccent }]}>{item}</Text>
-                    </LinearGradient>
-                  ) : (
-                    <View
-                      style={[
-                        styles.chip,
-                        {
-                          backgroundColor: colors.glass,
-                          borderColor: colors.glassBorder,
-                          borderWidth: 1,
-                        },
-                      ]}
-                    >
-                      <Text style={[styles.chipText, { color: colors.textDim }]}>{item}</Text>
-                    </View>
-                  )}
-                </ScalePressable>
-              );
-            })}
-          </View>
-        </View>
-
-        <PrimaryButton
-          label="Enter B Square"
-          onPress={handleEnter}
-          disabled={!businessName.trim() || !industry}
-        />
+        <View style={styles.track}><View style={[styles.progress,{width:`${(step+1)*25}%` as `${number}%`}]} /></View>
+        {step < 3 ? <Animated.View key={step} entering={reduceMotion ? undefined : FadeInRight.duration(360)} exiting={reduceMotion ? undefined : FadeOutLeft.duration(180)} style={styles.question}>
+          <Text style={styles.eyebrow}>{question.eyebrow}</Text>
+          <Text style={styles.title}>{question.lead.split('...')[0]}<Text style={styles.blue}>...</Text></Text>
+          <View style={styles.answers}>{question.answers.map((answer,i) => {
+            const selected = answers[step] === answer;
+            return <ScalePressable key={answer} onPress={()=>choose(answer)} style={[styles.answer,selected&&styles.selected]}>
+              <Text style={[styles.answerText,selected&&styles.answerActive]}>{answer}</Text>
+              <Text style={[styles.arrow,selected&&styles.answerActive]}>{selected?'✓':'→'}</Text>
+            </ScalePressable>;
+          })}</View>
+          {showResponse && <Text style={styles.feedback}>{question.response}</Text>}
+        </Animated.View> : <Animated.View entering={reduceMotion?undefined:FadeInRight.duration(360)} style={styles.question}>
+          <Text style={styles.eyebrow}>YOUR BUSINESS</Text>
+          <Text style={styles.title}>Let's make your <Text style={styles.blue}>introduction.</Text></Text>
+          <Text style={styles.support}>A few details help other verified members know who they're meeting.</Text>
+          <Text style={styles.fieldLabel}>COMPANY NAME</Text>
+          <TextInput value={businessName} onChangeText={setBusinessName} placeholder="Your company name" placeholderTextColor="#8A9AB2" style={styles.input}/>
+          <Text style={styles.fieldLabel}>INDUSTRY</Text>
+          <View style={styles.chips}>{INDUSTRIES.map(item=><ScalePressable key={item} onPress={()=>setIndustry(item)} style={[styles.chip,industry===item&&styles.selected]}><Text style={[styles.chipText,industry===item&&styles.answerActive]}>{item}</Text></ScalePressable>)}</View>
+        </Animated.View>}
+        <View style={styles.spacer}/>
+        <PrimaryButton label={step===3?'Continue to verification':'Continue  →'} disabled={step===3?(!businessName.trim()||!industry):!answers[step]} onPress={advance}/>
+        {step>0&&<ScalePressable onPress={()=>{setStep(s=>s-1);setShowResponse(false);}} style={styles.back}><Text style={styles.backText}>←  Previous question</Text></ScalePressable>}
       </ScrollView>
-    </KeyboardAvoidingView>
-  );
+    </LinearGradient>
+  </KeyboardAvoidingView>;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scroll: {
-    paddingHorizontal: 24,
-    gap: 20,
-  },
-  dots: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 8,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  title: {
-    fontFamily: 'SpaceGrotesk_700Bold',
-    fontSize: 30,
-  },
-  subtitle: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 15,
-    lineHeight: 22,
-    marginTop: -8,
-  },
-  avatarContainer: {
-    alignSelf: 'center',
-    width: 100,
-    height: 100,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 12,
-  },
-  avatarRing: {
-    position: 'absolute',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    overflow: 'hidden',
-  },
-  avatarInner: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  initials: {
-    fontFamily: 'SpaceGrotesk_700Bold',
-    fontSize: 28,
-  },
-  field: {
-    gap: 10,
-  },
-  label: {
-    fontFamily: 'JetBrainsMono_400Regular',
-    fontSize: 11,
-    letterSpacing: 1.8,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontFamily: 'Inter_500Medium',
-    fontSize: 16,
-  },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  chipWrapper: {
-    borderRadius: 999,
-    overflow: 'hidden',
-  },
-  chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 999,
-  },
-  chipText: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 14,
-  },
+const styles=StyleSheet.create({
+ scroll:{paddingHorizontal:26,flexGrow:1},header:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'},
+ brand:{fontFamily:'Ubuntu_700Bold',color:'#102758',fontSize:13,letterSpacing:3},
+ counter:{fontFamily:'Ubuntu_500Medium',fontSize:12,color:'#7385A3'},
+ track:{height:3,borderRadius:3,backgroundColor:'#E0E8F5',marginTop:24,overflow:'hidden'},
+ progress:{height:3,backgroundColor:'#234FC8',borderRadius:3},
+ question:{paddingTop:60,gap:18},
+ eyebrow:{fontFamily:'Ubuntu_700Bold',fontSize:11,letterSpacing:2.4,color:'#234FC8'},
+ title:{fontFamily:'Ubuntu_700Bold',fontSize:36,lineHeight:44,color:'#18243A',letterSpacing:-1.3,marginTop:8,marginBottom:16},
+ blue:{color:'#234FC8'},support:{fontFamily:'Ubuntu_400Regular',color:'#667894',fontSize:15,lineHeight:23,marginBottom:14},
+ answers:{gap:5},answer:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderBottomColor:'#E1E9F4',borderBottomWidth:1,paddingVertical:21,paddingHorizontal:13,borderRadius:12},
+ selected:{backgroundColor:'#DFEAFF',borderColor:'#B6CCF9',borderWidth:1},
+ answerText:{fontFamily:'Ubuntu_500Medium',fontSize:16,color:'#25344E',flex:1,paddingRight:10},
+ arrow:{fontFamily:'Ubuntu_500Medium',color:'#8092AE',fontSize:20},answerActive:{color:'#234FC8'},
+ feedback:{fontFamily:'Ubuntu_400Regular',fontSize:13,color:'#5873A6',marginTop:12},
+ spacer:{flex:1,minHeight:24},back:{padding:19,alignItems:'center'},backText:{fontFamily:'Ubuntu_500Medium',color:'#647592',fontSize:13},
+ fieldLabel:{fontFamily:'Ubuntu_700Bold',letterSpacing:1.6,fontSize:11,color:'#71819E',marginTop:16},
+ input:{backgroundColor:'#FFFFFF',borderColor:'#DEE7F5',borderWidth:1,borderRadius:16,paddingHorizontal:17,paddingVertical:17,fontFamily:'Ubuntu_500Medium',fontSize:16,color:'#18243A'},
+ chips:{flexDirection:'row',flexWrap:'wrap',gap:9,marginTop:2},
+ chip:{borderColor:'#DEE7F5',borderWidth:1,paddingHorizontal:14,paddingVertical:11,borderRadius:999,backgroundColor:'#FFFFFF'},
+ chipText:{fontFamily:'Ubuntu_500Medium',color:'#536782',fontSize:13},
 });
