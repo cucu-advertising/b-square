@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { DEMO_MODE } from '../lib/release';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -70,7 +71,7 @@ export default function OtpScreen() {
         <Text style={[styles.eyebrow, { color: colors.accent }]}>STEP 02</Text>
         <Text style={[styles.headline, { color: colors.text }]}>Enter verification code</Text>
         <Text style={[styles.subtext, { color: colors.textDim }]}>
-          We sent a 4-digit code to your phone. Enter it below to continue.
+          {DEMO_MODE ? 'Demo only: no SMS was sent. Any four digits let you preview onboarding.' : 'Verification is unavailable until the secure OTP service is connected.'}
         </Text>
 
         <View style={styles.otpRow}>
@@ -96,16 +97,16 @@ export default function OtpScreen() {
           ))}
         </View>
 
-        <ScalePressable onPress={() => {}}>
-          <Text style={[styles.resend, { color: colors.holoA }]}>Resend code</Text>
+        <ScalePressable onPress={() => router.back()}>
+          <Text style={[styles.resend, { color: colors.holoA }]}>Back to phone number</Text>
         </ScalePressable>
       </View>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 24 }]}>
         <PrimaryButton
           label="Verify & continue"
-          onPress={() => router.push('/onboarding')}
-          disabled={!isComplete}
+          onPress={() => { if (DEMO_MODE) router.push('/onboarding'); }}
+          disabled={!DEMO_MODE || !isComplete}
         />
       </View>
     </KeyboardAvoidingView>

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { DEMO_MODE } from '../lib/release';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,6 +40,7 @@ export default function EligibilityScreen() {
   }, [linkedinUrl, roleTitle, verificationMethod, workEmail]);
 
   const handleContinue = () => {
+    if (!DEMO_MODE) return;
     const result = evaluateAdmission({
       roleTitle,
       linkedInVerified: verificationMethod === 'linkedin' && linkedinUrl.includes('linkedin.com/'),
@@ -67,7 +69,7 @@ export default function EligibilityScreen() {
         <Text style={[styles.eyebrow, { color: colors.accent }]}>MEMBERSHIP CHECK</Text>
         <Text style={[styles.title, { color: colors.text }]}>Verify your professional standing</Text>
         <Text style={[styles.subtitle, { color: colors.textDim }]}>
-          Bsquare is designed for founders, owners, senior leaders, investors and trusted business decision-makers.
+          {DEMO_MODE ? 'Demo evaluation only. No identity or company details are being verified.' : 'Membership decisions require independently verified professional identity.'}
         </Text>
 
         <View style={styles.field}>
@@ -131,7 +133,7 @@ export default function EligibilityScreen() {
               style={[styles.input, { color: colors.text, backgroundColor: colors.glass, borderColor: colors.glassBorder }]}
             />
             <Text style={[styles.helper, { color: colors.textFaint }]}>
-              LinkedIn is one trust signal. Final admission can still require additional verification.
+              A LinkedIn URL is not identity verification. Membership requires independent review.
             </Text>
           </View>
         ) : null}
@@ -151,7 +153,7 @@ export default function EligibilityScreen() {
           </View>
         ) : null}
 
-        <PrimaryButton label="Check eligibility" onPress={handleContinue} disabled={!canContinue} />
+        <PrimaryButton label={DEMO_MODE ? "Preview eligibility" : "Review unavailable"} onPress={handleContinue} disabled={!DEMO_MODE || !canContinue} />
       </ScrollView>
     </KeyboardAvoidingView>
   );

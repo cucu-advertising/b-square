@@ -77,7 +77,9 @@ router.put(
       profileComplete: true,
     });
 
-    const verificationStatus = result.status === "approved" ? "approved" : "pending";
+    // Self-declared URLs, emails, registry numbers and referrals are NOT proof.
+    // Admission must remain pending until an authorized reviewer validates evidence.
+    const verificationStatus = "pending";
 
     try {
       const { rows } = await db.query(
@@ -107,7 +109,7 @@ router.put(
         ]
       );
 
-      return res.json({ admission: result, user: rows[0] });
+      return res.json({ admission: { ...result, status: "manual_review", reasons: [...result.reasons, "Independent review required"] }, user: rows[0] });
     } catch (err) {
       console.error("Admission save error:", err.message);
       return res.status(500).json({ error: "Failed to save admission details" });

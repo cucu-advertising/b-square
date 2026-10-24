@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { DEMO_MODE } from '../lib/release';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -22,6 +23,7 @@ export default function LoginScreen() {
   const [focused, setFocused] = useState(false);
 
   const handleSendCode = () => {
+    if (!DEMO_MODE) return;
     setPhone(phone);
     router.push('/otp');
   };
@@ -37,8 +39,7 @@ export default function LoginScreen() {
           Let's verify you're a real business.
         </Text>
         <Text style={[styles.subtext, { color: colors.textDim }]}>
-          We'll send a one-time code to your registered business phone. Only verified owners get
-          into B Square.
+          {DEMO_MODE ? 'Preview mode: no SMS will be sent. Continue to explore the UI.' : 'Phone sign-in is not available until secure SMS verification is configured.'}
         </Text>
 
         <View style={styles.inputGroup}>
@@ -71,7 +72,7 @@ export default function LoginScreen() {
       </View>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 24 }]}>
-        <PrimaryButton label="Send code" onPress={handleSendCode} disabled={phone.length < 10} />
+        <PrimaryButton label={DEMO_MODE ? 'Continue to demo' : 'Verification unavailable'} onPress={handleSendCode} disabled={!DEMO_MODE || phone.length < 10} />
       </View>
     </KeyboardAvoidingView>
   );

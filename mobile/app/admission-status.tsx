@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { DEMO_MODE } from '../lib/release';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PrimaryButton } from '../components/PrimaryButton';
@@ -18,23 +19,24 @@ export default function AdmissionStatusScreen() {
   const copy =
     status === 'approved'
       ? {
-          title: 'You are eligible for Bsquare',
-          body: 'Your current verification signals meet the admission threshold. Final server-side checks can still be applied before full access.',
-          button: 'Enter Bsquare',
+          title: 'Demo eligibility result',
+          body: 'This is a simulated eligibility result. Your identity has not been verified and no membership has been granted.',
+          button: 'Explore demo screens',
         }
       : status === 'manual_review'
         ? {
-            title: 'Application sent for review',
-            body: 'Your profile looks relevant, but we need one more trust check before approving full membership.',
-            button: 'Continue with limited access',
+            title: 'Demo review outcome',
+            body: 'This is a simulated review state. No application has been sent.',
+            button: 'Explore demo screens',
           }
         : {
             title: 'More verification required',
-            body: 'We could not confidently verify your business leadership profile yet. Add stronger proof such as a work email, registry record or verified referral.',
+            body: 'This is a demo score only, not a verified eligibility decision.',
             button: 'Update verification',
           };
 
   const handlePress = () => {
+    if (!DEMO_MODE) return;
     if (status === 'more_verification') {
       router.back();
       return;
@@ -68,7 +70,7 @@ export default function AdmissionStatusScreen() {
         </View>
       </View>
 
-      <PrimaryButton label={copy.button} onPress={handlePress} />
+      <PrimaryButton label={DEMO_MODE ? copy.button : 'Verification required'} onPress={handlePress} disabled={!DEMO_MODE} />
     </View>
   );
 }
