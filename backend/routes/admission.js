@@ -103,7 +103,7 @@ router.put(
           registrationNumber?.trim() || null,
           referralCode?.trim() || null,
           result.score,
-          result.status,
+          'manual_review',
           verificationStatus,
           req.user.id,
         ]
