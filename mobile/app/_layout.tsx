@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Platform, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
@@ -17,6 +18,7 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const colors = useThemeColors();
   const theme = useTheme();
+  const isWeb = Platform.OS === 'web';
 
   const [fontsLoaded] = useFonts({
     Ubuntu_400Regular, Ubuntu_500Medium, Ubuntu_700Bold,
@@ -33,7 +35,8 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.void }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: isWeb ? '#DFE8F6' : colors.void, alignItems: 'stretch' }}>
+      <View style={{ flex: 1, width: '100%', maxWidth: isWeb ? 430 : undefined, alignSelf: 'center', backgroundColor: colors.void, overflow: 'hidden', ...(isWeb ? { shadowColor: '#102758', shadowOpacity: 0.16, shadowRadius: 24, elevation: 8 } : {}) }}>
       <StatusBar style={'dark'} />
       <Stack
         screenOptions={{
@@ -55,6 +58,7 @@ export default function RootLayout() {
         <Stack.Screen name="profile/[id]" options={{ animation: 'slide_from_right' }} />
       </Stack>
       <Toast />
+      </View>
     </GestureHandlerRootView>
   );
 }
