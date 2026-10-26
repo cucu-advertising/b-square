@@ -34,6 +34,8 @@ async def _ensure_indexes() -> None:
     await _ensure_unique_index(db.users, "dinNumber", sparse=True)
     await _ensure_unique_index(db.users, "oauthLinkedinSub", sparse=True)
     await _ensure_unique_index(db.users, "oauthAppleSub", sparse=True)
+    await _ensure_unique_index(db.users, "firebasePhoneUid", sparse=True)
+    await _ensure_unique_index(db.users, "verifiedPhoneE164", sparse=True)
     await _migrate_refresh_token_indexes(db.refresh_tokens)
     await db.refresh_tokens.create_index("token", unique=True)
     await db.refresh_tokens.create_index("expires_at", expireAfterSeconds=0)
