@@ -28,6 +28,16 @@ const baseURL = (process.env.EXPO_PUBLIC_BSQUARE_API_URL || '').replace(/\/+$/, 
 function normalizeMember(value: any): Member {
   return { ...value, name: value.name || [value.firstName, value.lastName].filter(Boolean).join(' '), company_name: value.companyName || value.businessName || value.company_name || null, verification_status: value.verificationStatus || value.verification_status, verification_type: value.verificationType || value.verification_type };
 }
+function normalizeRequest(value: any): RequestItem {
+  return { ...normalizeMember(value.user || {}), request_id: value.id, status: value.status } as RequestItem;
+}
+function normalizeConversation(value: any): Conversation {
+  return { other_id: value.peerUserId, other_name: value.peerName, other_industry: value.peerCompanyName, last_message: value.lastMessage, last_message_at: value.lastMessageAt, unread_count: value.unreadCount };
+}
+function normalizeMessage(value: any): ChatMessage {
+  return { ...value, sender_id: value.senderId, receiver_id: value.receiverId, created_at: value.createdAt };
+
+}
 let webAccess: string | null = null;
 let webRefresh: string | null = null;
 
@@ -93,18 +103,18 @@ export const api = {
   nearby: async () => ({ users: (await request<Member[]>('/users/discover')).map(normalizeMember) }),
   member: async (id: string) => ({ user: normalizeMember(await request<Member>(`/users/${encodeURIComponent(id)}`)) }),
   connect: (id: string) => request(`/connections/request/${encodeURIComponent(id)}`, { method: 'POST' }),
-  received: async () => ({ requests: await request<RequestItem[]>('/connections/requests/received') }),
-  sent: async () => ({ requests: await request<RequestItem[]>('/connections/requests/sent') }),
+  received: async () => ({ requests: (await request<any[]>('/connections/requests/received')).map(normalizeRequest) }),
+  sent: async () => ({ requests: (await request<any[]>('/connections/requests/sent')).map(normalizeRequest) }),
   accept: (id: string) => request(`/connections/request/${encodeURIComponent(id)}/accept`, { method: 'PUT' }),
   decline: (id: string) => request(`/connections/request/${encodeURIComponent(id)}/decline`, { method: 'PUT' }),
-  conversations: async () => ({ conversations: await request<Conversation[]>('/messages') }),
-  messages: async (id: string) => ({ messages: await request<ChatMessage[]>(`/messages/${encodeURIComponent(id)}`) }),
+  conversations: async () => ({ conversations: (await request<any[]>('/messages')).map(normalizeConversation) }),
+  messages: async (id: string) => ({ messages: (await request<any[]>(`/messages/${encodeURIComponent(id)}`)).map(normalizeMessage) }),
   sendMessage: (id: string, content: string) => request(`/messages/${encodeURIComponent(id)}`, { method: 'POST', body: { content } }),
   block: (id: string) => request(`/users/${encodeURIComponent(id)}/block`, { method: 'POST' }),
   unblock: (id: string) => request(`/users/${encodeURIComponent(id)}/block`, { method: 'DELETE' }),
   blocks: () => request<{ blocked: Member[] }>('/safety/blocks'),
   report: (id: string, reason: string, details?: string) => request(`/users/${encodeURIComponent(id)}/report`, { method: 'POST', body: { reason } }),
-  deleteAccount: () => request('/auth/me', { method: 'DELETE', body: {} }),
+  deleteAccount: (password?: string) => request('/auth/me', { method: 'DELETE', body: { password: password || null } }),
   events: () => request<{ events: any[] }>('/events'),
   postEvent: (fields: { title: string; event_date: string; description?: string; location?: string; event_type?: string }) => request('/events', { method: 'POST', body: fields }),
   logout: async () => { const refreshToken = await readKey(REFRESH_KEY); if (refreshToken) await request('/auth/logout', { method: 'POST', body: { refreshToken } }).catch(() => {}); await clearSession(); },
