@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScalePressable } from '../components/AnimatedUI';
@@ -32,8 +32,8 @@ export default function LoginScreen() {
   };
   return <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#F8FAFE' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 26, paddingTop: 60, paddingBottom: 35 }}>
-      <Text style={{ fontFamily: 'Ubuntu_700Bold', fontSize: 14, letterSpacing: 3, color: '#234FC8' }}>B SQUARE</Text>
-      <Text style={{ fontFamily: 'Ubuntu_700Bold', fontSize: 36, lineHeight: 43, color: '#102758', marginTop: 56 }}>Your network. Your next opportunity.</Text>
+      <Image source={require('../assets/brand-logo.png')} resizeMode="contain" accessibilityLabel="B Square" style={{ width: 116, height: 116 }} />
+      <Text style={{ fontFamily: 'Ubuntu_700Bold', fontSize: 36, lineHeight: 43, color: '#102758', marginTop: 26 }}>Your network. Your next opportunity.</Text>
       <Text style={{ fontFamily: 'Ubuntu_400Regular', fontSize: 16, lineHeight: 25, color: '#61718D', marginTop: 16, marginBottom: 35 }}>Verify your approved business number using SMS. You can also sign in with email and password.</Text>
       {!isConfigured() ? <Text style={{ color: '#9C3D39', fontSize: 14, lineHeight: 21, marginBottom: 18 }}>API not configured. Set EXPO_PUBLIC_BSQUARE_API_URL to your deployed backend address.</Text> : null}
       <Text style={{ color: '#526789', fontFamily: 'Ubuntu_500Medium', marginBottom: 8 }}>Mobile number</Text>
