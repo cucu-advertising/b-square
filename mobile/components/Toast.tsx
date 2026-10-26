@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     zIndex: 999,
   },
   text: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Ubuntu_500Medium',
     fontSize: 14,
   },
 });

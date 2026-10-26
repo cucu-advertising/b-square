@@ -18,7 +18,8 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "pg": "^8.11.3",
-    "nodemailer": "^6.9.8"
+    "nodemailer": "^6.9.8",
+    "firebase-admin": "^13.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

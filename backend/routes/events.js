@@ -13,7 +13,9 @@ router.get("/", authenticate, async (req, res) => {
               u.verification_type, u.verification_status
        FROM events e
        JOIN users u ON u.id = e.user_id
-       ORDER BY e.event_date ASC, e.created_at DESC`
+       WHERE u.is_active=true AND u.verification_status='approved'
+         AND NOT EXISTS (SELECT 1 FROM user_blocks b WHERE (b.blocker_id=$1 AND b.blocked_id=u.id) OR (b.blocked_id=$1 AND b.blocker_id=u.id))
+       ORDER BY e.event_date ASC, e.created_at DESC`, [req.user.id]
     );
     res.json({ events: rows });
   } catch (err) {

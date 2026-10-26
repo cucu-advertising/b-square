@@ -1,89 +1,64 @@
-const router = require("express").Router();
-const db = require("../db");
-const { authenticate } = require("../middleware/auth");
+const router = require('express').Router();
+const db = require('../db');
+const { authenticate } = require('../middleware/auth');
 
-const HAVERSINE = `(6371 * acos(LEAST(1.0, cos(radians($1)) * cos(radians(u.lat)) * cos(radians(u.lng) - radians($2)) + sin(radians($1)) * sin(radians(u.lat)))))`;
+const isUuid = x => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(x));
+const haversine = `(6371 * acos(LEAST(1.0, GREATEST(-1.0, cos(radians($1)) * cos(radians(u.lat)) * cos(radians(u.lng) - radians($2)) + sin(radians($1)) * sin(radians(u.lat))))))`;
 
-router.get("/nearby", authenticate, async (req, res) => {
-  const { radius = 10, industry, page = 1, limit = 20 } = req.query;
-  const { lat, lng, id: currentId } = req.user;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
-  if (!lat || !lng) return res.status(400).json({ error: "Your location is not set. Please allow location access." });
+router.get('/nearby', authenticate, async (req, res) => {
+  const radius = Number(req.query.radius || 25);
+  const limit = Math.min(50, Math.max(1, Number.parseInt(req.query.limit || '20', 10) || 20));
+  const page = Math.max(1, Number.parseInt(req.query.page || '1', 10) || 1);
+  if (!Number.isFinite(radius) || radius < 1 || radius > 100) return res.status(400).json({ error: 'Radius must be between 1 and 100 kilometres' });
+  const { lat, lng, city, id } = req.user;
+  const hasLocation = lat != null && lng != null;
+  const params = [hasLocation ? Number(lat) : null, hasLocation ? Number(lng) : null, radius, id, city || '', limit, (page - 1) * limit];
   try {
-    const params = [lat, lng, parseFloat(radius), currentId];
-    let filterSQL = "";
-    if (industry) { params.push(`%${industry.toLowerCase()}%`); filterSQL = ` AND LOWER(u.industry) LIKE $${params.length}`; }
-    const sql = `
-      SELECT
-  u.id,
-  u.name,
-  u.company_name,
-  u.company_logo,
-  u.profile_photo,
-  u.headline,
-  u.share_slug,
-  u.industry,
-  u.bio,
-  u.city,
-  u.lat,
-  u.lng,
-        u.verification_type, u.verification_status,
-        u.founder_name, u.looking_for, u.business_goal, u.company_size,
-        u.revenue_range, u.business_interests, u.year_founded,
-        ROUND(CAST(${HAVERSINE} AS numeric), 1) AS distance_km,
-        CASE
-          WHEN c.id IS NOT NULL THEN 'connected'
-          WHEN cr_sent.id IS NOT NULL THEN 'request_sent'
-          WHEN cr_recv.id IS NOT NULL THEN 'request_received'
-          ELSE 'none'
-        END AS connection_status,
-        CASE WHEN cr_sent.id IS NOT NULL THEN cr_sent.id::text
-             WHEN cr_recv.id IS NOT NULL THEN cr_recv.id::text
-             ELSE NULL END AS request_id
+    const { rows } = await db.query(`
+      SELECT u.id, u.name, u.company_name, u.industry, u.bio, u.headline,
+             u.city, u.verification_status, u.role_title,
+             CASE WHEN $1::numeric IS NOT NULL AND u.lat IS NOT NULL AND u.lng IS NOT NULL THEN ROUND((${haversine})::numeric, 1) ELSE NULL END AS distance_km,
+             CASE WHEN c.id IS NOT NULL THEN 'connected'
+                  WHEN sent.id IS NOT NULL THEN 'request_sent'
+                  WHEN received.id IS NOT NULL THEN 'request_received'
+                  ELSE 'none' END AS connection_status,
+             COALESCE(sent.id::text, received.id::text) AS request_id
       FROM users u
       LEFT JOIN connections c ON (c.user_a_id=$4 AND c.user_b_id=u.id) OR (c.user_b_id=$4 AND c.user_a_id=u.id)
-      LEFT JOIN connection_requests cr_sent ON cr_sent.sender_id=$4 AND cr_sent.receiver_id=u.id AND cr_sent.status='pending'
-      LEFT JOIN connection_requests cr_recv ON cr_recv.receiver_id=$4 AND cr_recv.sender_id=u.id AND cr_recv.status='pending'
-      WHERE u.id != $4 AND u.is_active=true AND u.verification_status='approved' AND u.is_admin=false
-        AND ${HAVERSINE} <= $3 ${filterSQL}
-      ORDER BY distance_km ASC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
-    const { rows } = await db.query(sql, params);
-    return res.json({ users: rows, page: parseInt(page), limit: parseInt(limit) });
-  } catch (err) {
-    console.error("Nearby error:", err.message);
-    return res.status(500).json({ error: "Failed to fetch nearby users" });
-  }
+      LEFT JOIN connection_requests sent ON sent.sender_id=$4 AND sent.receiver_id=u.id AND sent.status='pending'
+      LEFT JOIN connection_requests received ON received.receiver_id=$4 AND received.sender_id=u.id AND received.status='pending'
+      WHERE u.id <> $4 AND u.is_active=true AND u.verification_status='approved' AND u.is_admin=false
+        AND NOT EXISTS (SELECT 1 FROM user_blocks b WHERE (b.blocker_id=$4 AND b.blocked_id=u.id) OR (b.blocked_id=$4 AND b.blocker_id=u.id))
+        AND (CASE WHEN $1::numeric IS NOT NULL AND u.lat IS NOT NULL AND u.lng IS NOT NULL THEN (${haversine}) <= $3
+             ELSE LOWER(COALESCE(u.city,'')) = LOWER($5) AND LENGTH($5) > 0 END)
+      ORDER BY distance_km ASC NULLS LAST, u.name ASC
+      LIMIT $6 OFFSET $7`, params);
+    res.json({ users: rows, page, limit });
+  } catch (e) { console.error('Nearby members error:', e.message); res.status(500).json({ error: 'Unable to load members' }); }
 });
 
-router.get("/:userId", authenticate, async (req, res) => {
+router.get('/:userId', authenticate, async (req, res) => {
   const { userId } = req.params;
+  if (!isUuid(userId)) return res.status(400).json({ error: 'Invalid member ID' });
   try {
-    const { rows } = await db.query(
-      `SELECT SELECT
-  u.id,
-  u.name,
-  u.company_name,
-  u.company_logo,
-  u.profile_photo,
-  u.headline,
-  u.share_slug,
-  u.industry,
-  u.bio,
-  u.city,
-  u.verification_type,
-        u.founder_name, u.looking_for, u.business_goal, u.company_size,
-        u.revenue_range, u.business_interests, u.year_founded, u.created_at,
-        CASE WHEN c.id IS NOT NULL THEN true ELSE false END AS is_connected,
-        CASE WHEN c.id IS NOT NULL THEN u.email ELSE NULL END AS email,
-        CASE WHEN c.id IS NOT NULL THEN u.phone ELSE NULL END AS phone
-       FROM users u
-       LEFT JOIN connections c ON (c.user_a_id=$1 AND c.user_b_id=u.id) OR (c.user_b_id=$1 AND c.user_a_id=u.id)
-       WHERE u.id=$2 AND u.is_active=true`,
-      [req.user.id, userId]
-    );
-    if (!rows[0]) return res.status(404).json({ error: "User not found" });
-    return res.json({ user: rows[0] });
-  } catch (err) { return res.status(500).json({ error: "Failed to fetch user" }); }
+    const { rows } = await db.query(`
+      SELECT u.id, u.name, u.company_name, u.industry, u.bio, u.headline,
+             u.city, u.role_title, u.verification_status, u.year_founded,
+             u.looking_for, u.company_size,
+             CASE WHEN c.id IS NOT NULL THEN u.email ELSE NULL END AS email,
+             CASE WHEN c.id IS NOT NULL THEN u.phone ELSE NULL END AS phone,
+             CASE WHEN c.id IS NOT NULL THEN 'connected'
+                  WHEN sent.id IS NOT NULL THEN 'request_sent'
+                  WHEN received.id IS NOT NULL THEN 'request_received'
+                  ELSE 'none' END AS connection_status
+      FROM users u
+      LEFT JOIN connections c ON (c.user_a_id=$1 AND c.user_b_id=u.id) OR (c.user_b_id=$1 AND c.user_a_id=u.id)
+      LEFT JOIN connection_requests sent ON sent.sender_id=$1 AND sent.receiver_id=u.id AND sent.status='pending'
+      LEFT JOIN connection_requests received ON received.receiver_id=$1 AND received.sender_id=u.id AND received.status='pending'
+      WHERE u.id=$2 AND u.is_active=true AND u.verification_status='approved'
+        AND NOT EXISTS (SELECT 1 FROM user_blocks b WHERE (b.blocker_id=$1 AND b.blocked_id=u.id) OR (b.blocked_id=$1 AND b.blocker_id=u.id))`, [req.user.id, userId]);
+    if (!rows.length) return res.status(404).json({ error: 'Member not found' });
+    res.json({ user: rows[0] });
+  } catch (e) { console.error('Profile lookup error:', e.message); res.status(500).json({ error: 'Unable to load profile' }); }
 });
-
 module.exports = router;

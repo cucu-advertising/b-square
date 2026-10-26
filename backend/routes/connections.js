@@ -38,6 +38,9 @@ router.post("/request/:targetId", authenticate, async (req, res) => {
     return res.status(400).json({ error: "You cannot send a request to yourself" });
 
   try {
+    // Reject blocked pairs before sending requests.
+    const blocked = await db.query("SELECT 1 FROM user_blocks WHERE (blocker_id=$1 AND blocked_id=$2) OR (blocker_id=$2 AND blocked_id=$1)", [senderId, targetId]);
+    if (blocked.rows.length) return res.status(403).json({ error: "Connection unavailable" });
     // 1. Target must exist and be approved
     const { rows: target } = await db.query(
       "SELECT id FROM users WHERE id=$1 AND is_active=true AND verification_status='approved' AND is_admin=false",
@@ -102,6 +105,8 @@ router.put("/request/:requestId/accept", authenticate, async (req, res) => {
     if (!rows[0]) return res.status(404).json({ error: "Request not found or already handled" });
 
     const { sender_id, receiver_id } = rows[0];
+    const blocked = await db.query("SELECT 1 FROM user_blocks WHERE (blocker_id=$1 AND blocked_id=$2) OR (blocker_id=$2 AND blocked_id=$1)", [sender_id, receiver_id]);
+    if (blocked.rows.length) return res.status(403).json({ error: "Connection unavailable" });
     await db.query("UPDATE connection_requests SET status='accepted', updated_at=NOW() WHERE id=$1", [requestId]);
 
     const a = sender_id < receiver_id ? sender_id : receiver_id;
@@ -179,7 +184,7 @@ router.get("/", authenticate, async (req, res) => {
         u.verification_type, u.verification_status, c.created_at AS connected_since
        FROM connections c
        JOIN users u ON u.id = CASE WHEN c.user_a_id=$1 THEN c.user_b_id ELSE c.user_a_id END
-       WHERE (c.user_a_id=$1 OR c.user_b_id=$1) AND u.is_active=true
+       WHERE (c.user_a_id=$1 OR c.user_b_id=$1) AND u.is_active=true AND NOT EXISTS (SELECT 1 FROM user_blocks b WHERE (b.blocker_id=$1 AND b.blocked_id=u.id) OR (b.blocked_id=$1 AND b.blocker_id=u.id))
        ORDER BY c.created_at DESC`,
       [req.user.id]
     );
@@ -197,7 +202,7 @@ router.get("/requests/received", authenticate, async (req, res) => {
       `SELECT cr.id AS request_id, cr.created_at, u.id, u.name, u.industry, u.bio, u.city, u.verification_type
        FROM connection_requests cr
        JOIN users u ON u.id = cr.sender_id
-       WHERE cr.receiver_id=$1 AND cr.status='pending' AND u.is_active=true
+       WHERE cr.receiver_id=$1 AND cr.status='pending' AND u.is_active=true AND NOT EXISTS (SELECT 1 FROM user_blocks b WHERE (b.blocker_id=$1 AND b.blocked_id=u.id) OR (b.blocked_id=$1 AND b.blocker_id=u.id))
        ORDER BY cr.created_at DESC`,
       [req.user.id]
     );
@@ -214,7 +219,7 @@ router.get("/requests/sent", authenticate, async (req, res) => {
       `SELECT cr.id AS request_id, cr.created_at, u.id, u.name, u.industry, u.bio, u.city, u.verification_type
        FROM connection_requests cr
        JOIN users u ON u.id = cr.receiver_id
-       WHERE cr.sender_id=$1 AND cr.status='pending' AND u.is_active=true
+       WHERE cr.sender_id=$1 AND cr.status='pending' AND u.is_active=true AND NOT EXISTS (SELECT 1 FROM user_blocks b WHERE (b.blocker_id=$1 AND b.blocked_id=u.id) OR (b.blocked_id=$1 AND b.blocker_id=u.id))
        ORDER BY cr.created_at DESC`,
       [req.user.id]
     );
