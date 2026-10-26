@@ -422,6 +422,32 @@ class AuthService:
             "linkedinUrl": payload.linkedin_url.strip() or None,
         }
 
+        # PATCH semantics: only change fields the caller explicitly supplied.
+        # The Pydantic model has defaults for every field. Persisting those defaults
+        # would silently blank city, company, interests and verification details.
+        supplied = payload.model_fields_set
+        field_map = {
+            "firstName": {"first_name", "last_name", "founder_name"},
+            "lastName": {"first_name", "last_name", "founder_name"},
+            "founderName": {"first_name", "last_name", "founder_name"},
+            "city": {"city"},
+            "industry": {"industry"},
+            "bio": {"bio"},
+            "headline": {"headline"},
+            "businessName": {"business_name", "company_name"},
+            "companyName": {"business_name", "company_name"},
+            "role": {"role"},
+            "yearFounded": {"year_founded"},
+            "companySize": {"company_size"},
+            "revenueRange": {"revenue_range"},
+            "businessGoal": {"business_goal"},
+            "lookingFor": {"looking_for"},
+            "businessInterests": {"business_interests"},
+            "linkedinUrl": {"linkedin_url"},
+        }
+        updates = {key: value for key, value in updates.items() if supplied & field_map[key]}
+        if not updates:
+            return serialize_user(user)
         updated = await self.users.update(user_id, updates)
         return serialize_user(updated or user)
 
