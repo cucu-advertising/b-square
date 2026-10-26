@@ -81,6 +81,7 @@ async function request<T>(path: string, options: { method?: string; body?: unkno
   return data as T;
 }
 export const api = {
+  loginWithFirebasePhone: (idToken: string) => request<{ accessToken: string; refreshToken: string; user: Member }>('/firebase-phone/session', { method: 'POST', body: { idToken }, token: null, retry: false }),
   login: (email: string, password: string) => request<{ accessToken: string; refreshToken: string; user: Member }>('/auth/login', { method: 'POST', body: { email, password }, token: null, retry: false }),
   register: (data: Record<string, unknown>) => request<{ message: string }>('/auth/register', { method: 'POST', body: data, token: null }),
   me: () => request<{ user: Member }>('/auth/me'),

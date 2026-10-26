@@ -27,6 +27,7 @@ if (process.env.NODE_ENV !== "test") app.use(morgan("dev"));
 app.get("/api/health", (req, res) => res.json({ status: "ok", timestamp: new Date().toISOString() }));
 
 app.use("/api/auth", require("./routes/auth"));
+app.use("/api/firebase-phone", require("./routes/firebase-phone"));
 app.use("/api/users", require("./routes/users"));
 app.use("/api/connections", require("./routes/connections"));
 app.use("/api/events", require("./routes/events"));
