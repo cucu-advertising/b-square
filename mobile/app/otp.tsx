@@ -5,9 +5,10 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { ScalePressable } from '../components/AnimatedUI';
 import { confirmPhoneCode, sendPhoneCode } from '../lib/firebasePhone';
 import { useSession } from '../lib/session';
+import { api } from '../lib/api';
 
 export default function OTP() {
-  const { phone } = useLocalSearchParams<{ phone?: string }>();
+  const { phone, mode } = useLocalSearchParams<{ phone?: string; mode?: string }>();
   const router = useRouter();
   const signInWithPhone = useSession(s => s.signInWithPhone);
   const [code, setCode] = useState('');
@@ -19,8 +20,13 @@ export default function OTP() {
     setBusy(true); setError('');
     try {
       const firebaseToken = await confirmPhoneCode(code);
-      await signInWithPhone(firebaseToken);
-      router.replace('/(tabs)/nearby');
+      if (mode === 'link') {
+        await api.linkFirebasePhone(firebaseToken);
+        router.replace('/(tabs)/profile');
+      } else {
+        await signInWithPhone(firebaseToken);
+        router.replace('/(tabs)/nearby');
+      }
     } catch (e) { setError(e instanceof Error ? e.message : 'Verification failed'); }
     finally { setBusy(false); }
   };
@@ -38,7 +44,7 @@ export default function OTP() {
       <Text style={{ fontFamily:'Ubuntu_400Regular', fontSize:15, color:'#61718D', lineHeight:24, marginTop:15, marginBottom:30 }}>Enter the 6-digit SMS code sent to {verifiedPhone || 'your phone'}.</Text>
       <TextInput value={code} onChangeText={t => setCode(t.replace(/\D/g,'').slice(0,6))} keyboardType="number-pad" autoComplete="sms-otp" textContentType="oneTimeCode" maxLength={6} accessibilityLabel="Six-digit verification code" placeholder="000000" style={{ backgroundColor:'white', borderWidth:1, borderColor:'#DDE5F3', padding:19, borderRadius:16, fontFamily:'Ubuntu_700Bold', fontSize:26, letterSpacing:8, color:'#102758', textAlign:'center' }} />
       {error ? <Text style={{ color:'#A52D38', marginTop:16 }}>{error}</Text> : null}
-      <View style={{ marginTop:26 }}><PrimaryButton label={busy?'Checking...':'Verify & sign in'} disabled={!verifiedPhone || busy || code.length!==6} onPress={verify} /></View>
+      <View style={{ marginTop:26 }}><PrimaryButton label={busy?'Checking...': mode === 'link' ? 'Verify & link phone' : 'Verify & sign in'} disabled={!verifiedPhone || busy || code.length!==6} onPress={verify} /></View>
       <ScalePressable onPress={resend} disabled={!verifiedPhone || busy} style={{ alignItems:'center', paddingVertical:24 }}><Text style={{ fontFamily:'Ubuntu_500Medium', color:'#234FC8' }}>Resend code</Text></ScalePressable>
     </ScrollView>
   </KeyboardAvoidingView>;
