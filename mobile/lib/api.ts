@@ -25,6 +25,9 @@ export type ChatMessage = { id: string; sender_id: string; receiver_id: string; 
 const TOKEN_KEY = 'bsquare_access_token';
 const REFRESH_KEY = 'bsquare_refresh_token';
 const baseURL = (process.env.EXPO_PUBLIC_BSQUARE_API_URL || '').replace(/\/+$/, '');
+function normalizeMember(value: any): Member {
+  return { ...value, name: value.name || [value.firstName, value.lastName].filter(Boolean).join(' '), company_name: value.companyName || value.businessName || value.company_name || null, verification_status: value.verificationStatus || value.verification_status, verification_type: value.verificationType || value.verification_type };
+}
 let webAccess: string | null = null;
 let webRefresh: string | null = null;
 
@@ -82,26 +85,26 @@ async function request<T>(path: string, options: { method?: string; body?: unkno
 }
 export const api = {
   linkFirebasePhone: (idToken: string) => request<{ linked: boolean }>('/firebase-phone/link', { method: 'POST', body: { idToken }, retry: false }),
-  loginWithFirebasePhone: (idToken: string) => request<{ accessToken: string; refreshToken: string; user: Member }>('/firebase-phone/session', { method: 'POST', body: { idToken }, token: null, retry: false }),
-  login: (email: string, password: string) => request<{ accessToken: string; refreshToken: string; user: Member }>('/auth/login', { method: 'POST', body: { email, password }, token: null, retry: false }),
+  loginWithFirebasePhone: async (idToken: string) => { const r = await request<{ accessToken: string; refreshToken: string; user: Member }>('/firebase-phone/session', { method: 'POST', body: { idToken }, token: null, retry: false }); return { ...r, user: normalizeMember(r.user) }; },
+  login: async (email: string, password: string) => { const r = await request<{ accessToken: string; refreshToken: string; user: Member }>('/auth/login', { method: 'POST', body: { email, password }, token: null, retry: false }); return { ...r, user: normalizeMember(r.user) }; },
   register: (data: Record<string, unknown>) => request<{ message: string }>('/auth/register', { method: 'POST', body: data, token: null }),
-  me: async () => ({ user: await request<Member>('/auth/me') }),
-  updateMe: (fields: Record<string, unknown>) => request<{ user: Member }>('/auth/me', { method: 'PUT', body: fields }),
-  nearby: () => request<{ users: Member[] }>('/users/nearby'),
-  member: (id: string) => request<{ user: Member }>(`/users/${encodeURIComponent(id)}`),
+  me: async () => ({ user: normalizeMember(await request<Member>('/auth/me')) }),
+  updateMe: async (fields: Record<string, unknown>) => ({ user: normalizeMember(await request<Member>('/users/me/profile', { method: 'PATCH', body: fields })) }),
+  nearby: async () => ({ users: (await request<Member[]>('/users/discover')).map(normalizeMember) }),
+  member: async (id: string) => ({ user: normalizeMember(await request<Member>(`/users/${encodeURIComponent(id)}`)) }),
   connect: (id: string) => request(`/connections/request/${encodeURIComponent(id)}`, { method: 'POST' }),
-  received: () => request<{ requests: RequestItem[] }>('/connections/requests/received'),
-  sent: () => request<{ requests: RequestItem[] }>('/connections/requests/sent'),
+  received: async () => ({ requests: await request<RequestItem[]>('/connections/requests/received') }),
+  sent: async () => ({ requests: await request<RequestItem[]>('/connections/requests/sent') }),
   accept: (id: string) => request(`/connections/request/${encodeURIComponent(id)}/accept`, { method: 'PUT' }),
   decline: (id: string) => request(`/connections/request/${encodeURIComponent(id)}/decline`, { method: 'PUT' }),
-  conversations: () => request<{ conversations: Conversation[] }>('/messages'),
-  messages: (id: string) => request<{ messages: ChatMessage[] }>(`/messages/${encodeURIComponent(id)}`),
+  conversations: async () => ({ conversations: await request<Conversation[]>('/messages') }),
+  messages: async (id: string) => ({ messages: await request<ChatMessage[]>(`/messages/${encodeURIComponent(id)}`) }),
   sendMessage: (id: string, content: string) => request(`/messages/${encodeURIComponent(id)}`, { method: 'POST', body: { content } }),
-  block: (id: string) => request(`/safety/block/${encodeURIComponent(id)}`, { method: 'POST' }),
-  unblock: (id: string) => request(`/safety/block/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  block: (id: string) => request(`/users/${encodeURIComponent(id)}/block`, { method: 'POST' }),
+  unblock: (id: string) => request(`/users/${encodeURIComponent(id)}/block`, { method: 'DELETE' }),
   blocks: () => request<{ blocked: Member[] }>('/safety/blocks'),
-  report: (id: string, reason: string, details?: string) => request(`/safety/report/${encodeURIComponent(id)}`, { method: 'POST', body: { reason, details } }),
-  deleteAccount: () => request('/safety/account', { method: 'DELETE', body: { confirmation: 'DELETE' } }),
+  report: (id: string, reason: string, details?: string) => request(`/users/${encodeURIComponent(id)}/report`, { method: 'POST', body: { reason } }),
+  deleteAccount: () => request('/auth/me', { method: 'DELETE', body: {} }),
   events: () => request<{ events: any[] }>('/events'),
   postEvent: (fields: { title: string; event_date: string; description?: string; location?: string; event_type?: string }) => request('/events', { method: 'POST', body: fields }),
   logout: async () => { const refreshToken = await readKey(REFRESH_KEY); if (refreshToken) await request('/auth/logout', { method: 'POST', body: { refreshToken } }).catch(() => {}); await clearSession(); },
