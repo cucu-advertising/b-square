@@ -55,6 +55,7 @@ export default function RootLayout() {
         <Stack.Screen name="blocked" />
         <Stack.Screen name="chat/[id]" />
         <Stack.Screen name="otp" />
+        <Stack.Screen name="link-phone" />
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="eligibility" />
         <Stack.Screen name="admission-status" />
