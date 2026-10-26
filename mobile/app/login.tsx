@@ -34,7 +34,7 @@ export default function LoginScreen() {
     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 26, paddingTop: 60, paddingBottom: 35 }}>
       <Image source={require('../assets/brand-logo.png')} resizeMode="contain" accessibilityLabel="B Square" style={{ width: 116, height: 116 }} />
       <Text style={{ fontFamily: 'Ubuntu_700Bold', fontSize: 36, lineHeight: 43, color: '#102758', marginTop: 26 }}>Your network. Your next opportunity.</Text>
-      <Text style={{ fontFamily: 'Ubuntu_400Regular', fontSize: 16, lineHeight: 25, color: '#61718D', marginTop: 16, marginBottom: 35 }}>Verify your approved business number using SMS. You can also sign in with email and password.</Text>
+      <Text style={{ fontFamily: 'Ubuntu_400Regular', fontSize: 16, lineHeight: 25, color: '#61718D', marginTop: 16, marginBottom: 35 }}>Sign in with SMS after linking your phone in your account profile. First time? Sign in with your existing email and password, then link your phone.</Text>
       {!isConfigured() ? <Text style={{ color: '#9C3D39', fontSize: 14, lineHeight: 21, marginBottom: 18 }}>API not configured. Set EXPO_PUBLIC_BSQUARE_API_URL to your deployed backend address.</Text> : null}
       <Text style={{ color: '#526789', fontFamily: 'Ubuntu_500Medium', marginBottom: 8 }}>Mobile number</Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderWidth: 1, borderColor: '#DDE5F3', borderRadius: 14, paddingHorizontal: 16, marginBottom: 14 }}>
