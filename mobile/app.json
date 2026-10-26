@@ -19,7 +19,8 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.cucuadvertising.bsquare"
+      "package": "com.cucuadvertising.bsquare",
+      "versionCode": 3
     },
     "web": {
       "favicon": "./assets/favicon.png",
