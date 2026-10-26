@@ -60,7 +60,7 @@ async function request<T>(path: string, options: { method?: string; body?: unkno
   const token = options.token !== undefined ? options.token : await getAccessToken();
   let res: Response;
   try {
-    res = await fetch(`${baseURL}/api${path}`, {
+    res = await fetch(`${baseURL}/api/v1${path}`, {
       method: options.method || 'GET',
       headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       ...(options.body !== undefined ? { body: JSON.stringify(options.body) } : {}),
@@ -81,10 +81,11 @@ async function request<T>(path: string, options: { method?: string; body?: unkno
   return data as T;
 }
 export const api = {
+  linkFirebasePhone: (idToken: string) => request<{ linked: boolean }>('/firebase-phone/link', { method: 'POST', body: { idToken }, retry: false }),
   loginWithFirebasePhone: (idToken: string) => request<{ accessToken: string; refreshToken: string; user: Member }>('/firebase-phone/session', { method: 'POST', body: { idToken }, token: null, retry: false }),
   login: (email: string, password: string) => request<{ accessToken: string; refreshToken: string; user: Member }>('/auth/login', { method: 'POST', body: { email, password }, token: null, retry: false }),
   register: (data: Record<string, unknown>) => request<{ message: string }>('/auth/register', { method: 'POST', body: data, token: null }),
-  me: () => request<{ user: Member }>('/auth/me'),
+  me: async () => ({ user: await request<Member>('/auth/me') }),
   updateMe: (fields: Record<string, unknown>) => request<{ user: Member }>('/auth/me', { method: 'PUT', body: fields }),
   nearby: () => request<{ users: Member[] }>('/users/nearby'),
   member: (id: string) => request<{ user: Member }>(`/users/${encodeURIComponent(id)}`),
