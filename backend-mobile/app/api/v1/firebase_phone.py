@@ -19,7 +19,7 @@ from app.core.exceptions import AppError
 from app.services.auth_service import AuthService, serialize_user
 
 router = APIRouter(prefix="/firebase-phone", tags=["firebase-phone"])
-PHONE_PATTERN = re.compile(r"^\\+91[6-9]\\d{9}$")
+PHONE_PATTERN = re.compile(r"^\+91[6-9]\d{9}$")
 
 
 class FirebaseTokenRequest(BaseModel):
