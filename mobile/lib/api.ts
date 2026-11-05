@@ -98,6 +98,7 @@ export const api = {
   loginWithFirebasePhone: async (idToken: string) => { const r = await request<{ accessToken: string; refreshToken: string; user: Member }>('/firebase-phone/session', { method: 'POST', body: { idToken }, token: null, retry: false }); return { ...r, user: normalizeMember(r.user) }; },
   login: async (email: string, password: string) => { const r = await request<{ accessToken: string; refreshToken: string; user: Member }>('/auth/login', { method: 'POST', body: { email, password }, token: null, retry: false }); return { ...r, user: normalizeMember(r.user) }; },
   register: (data: Record<string, unknown>) => request<{ message: string }>('/auth/register', { method: 'POST', body: data, token: null }),
+  forgotPassword: (email: string) => request<{ message: string }>('/auth/forgot-password', { method: 'POST', body: { email: email.trim().toLowerCase() }, token: null, retry: false }),
   me: async () => ({ user: normalizeMember(await request<Member>('/auth/me')) }),
   updateMe: async (fields: Record<string, unknown>) => ({ user: normalizeMember(await request<Member>('/users/me/profile', { method: 'PATCH', body: fields })) }),
   nearby: async () => ({ users: (await request<Member[]>('/users/discover')).map(normalizeMember) }),
