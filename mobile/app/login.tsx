@@ -45,7 +45,8 @@ export default function LoginScreen() {
       </View>
       <PrimaryButton label={busy ? 'Sending...' : 'Send verification code'} disabled={busy || !isConfigured() || !/^[6-9]\d{9}$/.test(phone) || Platform.OS === 'web'} onPress={sendOTP} />
       {Platform.OS === 'web' ? <Text style={{ fontFamily: 'Ubuntu_400Regular', fontSize: 12, color: '#62728C', marginTop: 10 }}>Firebase SMS sign-in is available in Android/iOS builds, not the browser preview.</Text> : null}
-      <Text style={{ fontFamily:'Ubuntu_500Medium',textAlign:'center',color:'#61718D',marginTop:28,marginBottom:22 }}>OR SIGN IN WITH EMAIL</Text>
+      <ScalePressable accessibilityRole="button" onPress={() => router.push({ pathname: '/email-sign-in', params: { email } })} style={{ marginTop: 24, backgroundColor: '#ECF2FF', borderRadius: 16, paddingVertical: 17, paddingHorizontal: 18, alignItems: 'center' }}><Text style={{ fontFamily: 'Ubuntu_700Bold', fontSize: 15, color: '#234FC8' }}>Sign in with email code →</Text></ScalePressable>
+      <Text style={{ fontFamily:'Ubuntu_500Medium',textAlign:'center',color:'#61718D',marginTop:26,marginBottom:22 }}>OR USE EMAIL & PASSWORD</Text>
       <Text style={{ color: '#526789', fontFamily: 'Ubuntu_500Medium', marginBottom: 8 }}>Email</Text>
       <TextInput accessibilityLabel="Email" value={email} onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} autoComplete="email" textContentType="emailAddress" onFocus={revealInputs} keyboardType="email-address" placeholder="you@company.com" style={{ backgroundColor: 'white', borderWidth: 1, borderColor: '#DDE5F3', borderRadius: 14, padding: 16, color: '#102758', fontFamily: 'Ubuntu_400Regular', fontSize: 16, marginBottom: 20 }} />
       <Text style={{ color: '#526789', fontFamily: 'Ubuntu_500Medium', marginBottom: 8 }}>Password</Text>
