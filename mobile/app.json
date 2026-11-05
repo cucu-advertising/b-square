@@ -18,7 +18,8 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.cucuadvertising.bsquare",
-      "versionCode": 3
+      "versionCode": 3,
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "favicon": "./assets/favicon.png",
