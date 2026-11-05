@@ -51,6 +51,7 @@ export default function RootLayout() {
       >
         <Stack.Screen name="index" options={{ animation: 'fade' }} />
         <Stack.Screen name="login" />
+        <Stack.Screen name="forgot-password" />
         <Stack.Screen name="register" />
         <Stack.Screen name="blocked" />
         <Stack.Screen name="chat/[id]" />
