@@ -8,6 +8,7 @@ type Session = {
   hydrate: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithPhone: (firebaseToken: string) => Promise<void>;
+  signInWithEmailCode: (email: string, code: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateUser: (user: Member) => void;
 };
@@ -27,6 +28,17 @@ export const useSession = create<Session>((set) => ({
       set({ user: result.user, loading: false });
     } catch (e) {
       set({ loading: false, error: e instanceof Error ? e.message : 'Unable to sign in' });
+      throw e;
+    }
+  },
+  signInWithEmailCode: async (email, code) => {
+    set({ loading: true, error: null });
+    try {
+      const result = await api.verifyEmailCode(email, code);
+      await storeSession(result.accessToken, result.refreshToken);
+      set({ user: result.user, loading: false, error: null });
+    } catch (e) {
+      set({ loading: false, error: e instanceof Error ? e.message : 'Email verification failed' });
       throw e;
     }
   },
