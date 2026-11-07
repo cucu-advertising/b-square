@@ -98,6 +98,9 @@ export const api = {
   loginWithFirebasePhone: async (idToken: string) => { const r = await request<{ accessToken: string; refreshToken: string; user: Member }>('/firebase-phone/session', { method: 'POST', body: { idToken }, token: null, retry: false }); return { ...r, user: normalizeMember(r.user) }; },
   login: async (email: string, password: string) => { const r = await request<{ accessToken: string; refreshToken: string; user: Member }>('/auth/login', { method: 'POST', body: { email, password }, token: null, retry: false }); return { ...r, user: normalizeMember(r.user) }; },
   register: (data: Record<string, unknown>) => request<{ message: string }>('/auth/register', { method: 'POST', body: data, token: null }),
+  requestSignupCode: (email: string) => request<{ message: string }>('/auth/signup-email/request', { method: 'POST', body: { email: email.trim().toLowerCase() }, token: null, retry: false }),
+  verifySignupCode: (email: string, code: string) => request<{ verificationToken: string }>('/auth/signup-email/verify', { method: 'POST', body: { email: email.trim().toLowerCase(), code }, token: null, retry: false }),
+  registerVerified: (data: Record<string, unknown>) => request<{ message: string }>('/auth/register-verified', { method: 'POST', body: data, token: null, retry: false }),
   requestEmailCode: (email: string) => request<{ message: string }>('/auth/email-code/request', { method: 'POST', body: { email: email.trim().toLowerCase() }, token: null, retry: false }),
   verifyEmailCode: async (email: string, code: string) => {
     const r = await request<{ accessToken: string; refreshToken: string; user: Member }>('/auth/email-code/verify', { method: 'POST', body: { email: email.trim().toLowerCase(), code }, token: null, retry: false });
