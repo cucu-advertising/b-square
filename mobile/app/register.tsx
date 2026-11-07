@@ -54,67 +54,67 @@ export default function RegisterScreen() {
   };
   const field = (label: string, key: keyof typeof data, props: Record<string, any> = {}) =>
     <View style={{ marginBottom: 17 }} key={key}>
-      <Text style={{ color: '#526789', fontFamily: 'Ubuntu_500Medium', marginBottom: 7 }}>{label}</Text>
+      <Text style={{ color: '#5E7067', fontFamily: 'Ubuntu_500Medium', marginBottom: 7 }}>{label}</Text>
       <TextInput accessibilityLabel={label} value={data[key]}
         onChangeText={value => setData(old => ({ ...old, [key]: value }))}
         autoCorrect={false} onFocus={reveal} placeholder={label}
-        style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DDE5F3', borderRadius: 14, padding: 16, color: '#102758', fontSize: 16, fontFamily: 'Ubuntu_400Regular' }}
+        style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E0E5DD', borderRadius: 14, padding: 16, color: '#223A33', fontSize: 16, fontFamily: 'Ubuntu_400Regular' }}
         {...props} />
     </View>;
-  return <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#F8FAFE' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+  return <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#F7F6F2' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
     <ScrollView ref={scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 25, paddingTop: 50, paddingBottom: 64 }}>
       <ScalePressable onPress={() => step === 'profile' || step === 'code' ? begin() : router.replace('/login')} style={{ paddingVertical: 12 }}>
-        <Text style={{ color: '#234FC8', fontFamily: 'Ubuntu_500Medium' }}>← {step === 'code' || step === 'profile' ? 'Change email' : 'Sign in'}</Text>
+        <Text style={{ color: '#385A53', fontFamily: 'Ubuntu_500Medium' }}>← {step === 'code' || step === 'profile' ? 'Change email' : 'Sign in'}</Text>
       </ScalePressable>
-      <Text style={{ fontFamily: 'Ubuntu_500Medium', color: '#234FC8', fontSize: 12, letterSpacing: 1.5, marginTop: 28 }}>B SQUARE / MEMBERSHIP</Text>
-      <Text style={{ fontFamily: 'Ubuntu_700Bold', color: '#102758', fontSize: 33, lineHeight: 41, marginTop: 10 }}>
+      <Text style={{ fontFamily: 'Ubuntu_500Medium', color: '#385A53', fontSize: 12, letterSpacing: 1.5, marginTop: 28 }}>B SQUARE  ·  MEMBERSHIP</Text>
+      <Text style={{ fontFamily: 'Ubuntu_700Bold', color: '#223A33', fontSize: 33, lineHeight: 41, marginTop: 10 }}>
         {step === 'email' ? 'Start with your email.' : step === 'code' ? 'Check your inbox.' : step === 'profile' ? 'Tell us about your business.' : 'Application received.'}
       </Text>
-      <Text style={{ fontFamily: 'Ubuntu_400Regular', color: '#62728C', fontSize: 15, lineHeight: 24, marginTop: 12, marginBottom: 30 }}>
+      <Text style={{ fontFamily: 'Ubuntu_400Regular', color: '#687870', fontSize: 15, lineHeight: 24, marginTop: 12, marginBottom: 30 }}>
         {step === 'email' ? 'Verify your email before creating your B Square membership application.' : step === 'code' ? 'Enter the 6-digit code we sent to your email. It expires in 5 minutes.' : step === 'profile' ? 'Your email is verified. Complete your application using the details below.' : 'Your email is verified and your application has been submitted.'}
       </Text>
       {step === 'email' ? <>
-        <Text style={{ color: '#526789', fontFamily: 'Ubuntu_500Medium', marginBottom: 9 }}>Email address</Text>
+        <Text style={{ color: '#5E7067', fontFamily: 'Ubuntu_500Medium', marginBottom: 9 }}>Email address</Text>
         <TextInput accessibilityLabel="New member email address" value={email}
           onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} autoComplete="email" textContentType="emailAddress"
           keyboardType="email-address" placeholder="you@company.com" onFocus={reveal} returnKeyType="done" onSubmitEditing={sendCode}
-          style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DDE5F3', borderRadius: 14, padding: 16, color: '#102758', fontFamily: 'Ubuntu_400Regular', fontSize: 16, marginBottom: 20 }} />
+          style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E0E5DD', borderRadius: 14, padding: 16, color: '#223A33', fontFamily: 'Ubuntu_400Regular', fontSize: 16, marginBottom: 20 }} />
         <PrimaryButton label={busy ? 'Sending...' : 'Send verification code'} disabled={!validEmail || busy || !isConfigured()} onPress={sendCode} />
       </> : null}
       {step === 'code' ? <>
-        <Text style={{ color: '#526789', fontFamily: 'Ubuntu_500Medium', marginBottom: 12 }}>{cleanEmail}</Text>
+        <Text style={{ color: '#5E7067', fontFamily: 'Ubuntu_500Medium', marginBottom: 12 }}>{cleanEmail}</Text>
         <TextInput accessibilityLabel="Six-digit email verification code" value={code}
           onChangeText={v => setCode(v.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad"
           autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={6} placeholder="000000" onFocus={reveal}
-          style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DDE5F3', borderRadius: 14, padding: 18, color: '#102758', fontFamily: 'Ubuntu_700Bold', fontSize: 25, letterSpacing: 7, textAlign: 'center', marginBottom: 18 }} />
+          style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E0E5DD', borderRadius: 14, padding: 18, color: '#223A33', fontFamily: 'Ubuntu_700Bold', fontSize: 25, letterSpacing: 7, textAlign: 'center', marginBottom: 18 }} />
         <PrimaryButton label={busy ? 'Verifying...' : 'Verify email'} disabled={busy || code.length !== 6} onPress={verifyCode} />
         <ScalePressable onPress={sendCode} disabled={busy} style={{ alignItems: 'center', paddingVertical: 22 }}>
-          <Text style={{ color: '#234FC8', fontFamily: 'Ubuntu_500Medium' }}>Resend code (after 60 seconds)</Text>
+          <Text style={{ color: '#385A53', fontFamily: 'Ubuntu_500Medium' }}>Resend code (after 60 seconds)</Text>
         </ScalePressable>
       </> : null}
       {step === 'profile' ? <>
-        <View style={{ backgroundColor: '#EAF2FF', borderRadius: 14, padding: 14, marginBottom: 24 }}>
-          <Text style={{ color: '#234FC8', fontFamily: 'Ubuntu_500Medium' }}>✓ Email verified: {cleanEmail}</Text>
+        <View style={{ backgroundColor: '#E9EFE8', borderRadius: 14, padding: 14, marginBottom: 24 }}>
+          <Text style={{ color: '#385A53', fontFamily: 'Ubuntu_500Medium' }}>✓ Email verified: {cleanEmail}</Text>
         </View>
         {field('Full name', 'name', { autoCapitalize: 'words', autoComplete: 'name' })}
         {field('Company / business name', 'businessName', { autoCapitalize: 'words' })}
         {field('Create password (8+ characters)', 'password', { secureTextEntry: true, autoCapitalize: 'none', autoComplete: 'new-password' })}
         {field('City', 'city', { autoCapitalize: 'words' })}
-        <Text style={{ color: '#526789', fontFamily: 'Ubuntu_500Medium', marginBottom: 9 }}>Industry (optional)</Text>
+        <Text style={{ color: '#5E7067', fontFamily: 'Ubuntu_500Medium', marginBottom: 9 }}>Industry (optional)</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 21 }} keyboardShouldPersistTaps="handled">
           {INDUSTRIES.map(industry => <ScalePressable key={industry} onPress={() => setData(prev => ({ ...prev, industry }))}
-            style={{ borderRadius: 18, paddingHorizontal: 15, paddingVertical: 10, marginRight: 8, backgroundColor: data.industry === industry ? '#234FC8' : '#EDF2FB' }}>
-            <Text style={{ color: data.industry === industry ? '#FFFFFF' : '#526789', fontFamily: 'Ubuntu_500Medium', fontSize: 13 }}>{industry}</Text>
+            style={{ borderRadius: 18, paddingHorizontal: 15, paddingVertical: 10, marginRight: 8, backgroundColor: data.industry === industry ? '#385A53' : '#EEF1EA' }}>
+            <Text style={{ color: data.industry === industry ? '#FFFFFF' : '#5E7067', fontFamily: 'Ubuntu_500Medium', fontSize: 13 }}>{industry}</Text>
           </ScalePressable>)}
         </ScrollView>
         {field('LinkedIn profile URL', 'linkedinUrl', { keyboardType: 'url', autoCapitalize: 'none' })}
-        <Text style={{ color: '#62728C', fontSize: 12, lineHeight: 19, marginBottom: 20 }}>A LinkedIn URL does not by itself verify business ownership. Membership remains subject to B Square's review process.</Text>
+        <Text style={{ color: '#687870', fontSize: 12, lineHeight: 19, marginBottom: 20 }}>A LinkedIn URL does not by itself verify business ownership. Membership remains subject to B Square's review process.</Text>
         <PrimaryButton label={busy ? 'Submitting...' : 'Submit membership application'}
           disabled={busy || !data.name.trim() || !data.businessName.trim() || data.password.length < 8 || !data.city.trim() || !data.linkedinUrl.includes('linkedin.com/in/')}
           onPress={submit} />
       </> : null}
       {step === 'done' ? <PrimaryButton label="Back to sign in" onPress={() => router.replace('/login')} /> : null}
-      {error ? <Text style={{ color: '#A52D38', fontFamily: 'Ubuntu_400Regular', marginTop: 16, lineHeight: 22 }}>{error}</Text> : null}
+      {error ? <Text style={{ color: '#A04440', fontFamily: 'Ubuntu_400Regular', marginTop: 16, lineHeight: 22 }}>{error}</Text> : null}
     </ScrollView>
   </KeyboardAvoidingView>;
 }
