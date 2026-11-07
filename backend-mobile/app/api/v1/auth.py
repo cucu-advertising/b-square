@@ -1,7 +1,9 @@
 import secrets
+from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Form, Request
+from pydantic import Field
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.api.deps import get_auth_service, get_current_user_id
@@ -20,6 +22,8 @@ from app.schemas.auth import (
 )
 from app.services import apple_oauth, linkedin_oauth
 from app.services.auth_service import AuthService
+from app.db.connection import get_db
+from app.api.v1.signup_email import digest as signup_digest
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -30,6 +34,28 @@ async def register(
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> dict:
     user, tokens = await auth_service.register(payload)
+    return {"user": user.model_dump(by_alias=True), **tokens.model_dump(by_alias=True)}
+
+
+class VerifiedRegisterRequest(RegisterRequest):
+    verification_token: str = Field(alias="verificationToken", min_length=32, max_length=256)
+
+
+@router.post("/register-verified")
+async def register_verified(
+    payload: VerifiedRegisterRequest,
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+) -> dict:
+    """A fresh, single-use verification ticket must match the registration email."""
+    email = str(payload.email).strip().lower()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    token_digest = signup_digest(email, "ticket", payload.verification_token)
+    ticket = await get_db().signup_email_tickets.find_one_and_delete({
+        "_id": email, "digest": token_digest, "expiresAt": {"$gt": now}
+    })
+    if ticket is None:
+        raise AppError("Please verify your email again to continue registration", 401)
+    user, tokens = await auth_service.register(RegisterRequest.model_validate(payload.model_dump(by_alias=True)))
     return {"user": user.model_dump(by_alias=True), **tokens.model_dump(by_alias=True)}
 
 
