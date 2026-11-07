@@ -9,5 +9,5 @@ export default function LaunchScreen() {
   const loading = useSession(s => s.loading);
   useEffect(() => { hydrate(); }, [hydrate]);
   useEffect(() => { if (!loading) router.replace(user ? '/(tabs)/nearby' : '/login'); }, [loading, user, router]);
-  return <View style={{ flex: 1, backgroundColor: '#F8FAFE', alignItems: 'center', justifyContent: 'center', gap: 24 }}><Image source={require('../assets/brand-logo.png')} resizeMode="contain" accessibilityLabel="B Square" style={{ width: 220, height: 220 }} /><Text style={{ fontFamily: 'Ubuntu_400Regular', color: '#62728C', fontSize: 15 }}>Your next connection starts here.</Text><ActivityIndicator color="#234FC8" /></View>;
+  return <View style={{ flex: 1, backgroundColor: '#F7F6F2', alignItems: 'center', justifyContent: 'center', gap: 24 }}><Image source={require('../assets/brand-logo.png')} resizeMode="contain" accessibilityLabel="B Square" style={{ width: 220, height: 220 }} /><Text style={{ fontFamily: 'Ubuntu_400Regular', color: '#687870', fontSize: 15 }}>Your next connection starts here.</Text><ActivityIndicator color="#385A53" /></View>;
 }
