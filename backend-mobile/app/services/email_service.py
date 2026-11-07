@@ -87,3 +87,38 @@ async def send_login_code_email(*, to_email: str, code: str) -> bool:
         return True
     except httpx.HTTPError:
         return False
+
+
+async def send_signup_code_email(*, to_email: str, code: str) -> bool:
+    """Email a new applicant's six-digit verification code via Resend."""
+    settings = get_settings()
+    if not settings.resend_api_key:
+        return False
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;color:#102758">
+      <h2>Verify your B Square email</h2>
+      <p>Enter this code in the B Square app to continue your membership application.</p>
+      <p style="font-size:32px;font-weight:700;letter-spacing:8px;padding:20px;background:#F1F5FC;text-align:center">{code}</p>
+      <p>This code expires in 5 minutes. Never share it with anyone.</p>
+      <p>If you didn't request this email, you can ignore it.</p>
+    </div>
+    """
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                _RESEND_URL,
+                headers={
+                    "Authorization": f"Bearer {settings.resend_api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": settings.resend_from_email,
+                    "to": [to_email],
+                    "subject": "Verify your B Square email",
+                    "html": html,
+                },
+            )
+            response.raise_for_status()
+        return True
+    except httpx.HTTPError:
+        return False
