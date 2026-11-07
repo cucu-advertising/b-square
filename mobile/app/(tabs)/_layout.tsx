@@ -9,8 +9,8 @@ export default function TabsLayout() {
   const { user, loading, hydrate } = useSession();
   useEffect(() => { if (!user && loading) hydrate(); }, [user, loading, hydrate]);
   useEffect(() => { if (!loading && !user) router.replace('/login'); }, [loading, user, router]);
-  if (!user) return <View style={{ flex: 1, backgroundColor: '#F8FAFE', justifyContent: 'center' }}><ActivityIndicator color="#234FC8" /></View>;
-  return <Tabs screenListeners={{ tabPress: () => haptic('selection') }} screenOptions={{ headerShown: false, tabBarStyle: { height: 74, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E3EBF5', paddingTop: 9, paddingBottom: 12 }, tabBarActiveTintColor: '#234FC8', tabBarInactiveTintColor: '#8090AB', tabBarLabelStyle: { fontFamily: 'Ubuntu_500Medium', fontSize: 11 } }}>
+  if (!user) return <View style={{ flex: 1, backgroundColor: '#F7F6F2', justifyContent: 'center' }}><ActivityIndicator color="#385A53" /></View>;
+  return <Tabs screenListeners={{ tabPress: () => haptic('selection') }} screenOptions={{ headerShown: false, tabBarStyle: { height: 74, backgroundColor: '#FAF9F6', borderTopWidth: 1, borderTopColor: '#E4E8E0', paddingTop: 9, paddingBottom: 12 }, tabBarActiveTintColor: '#385A53', tabBarInactiveTintColor: '#849187', tabBarLabelStyle: { fontFamily: 'Ubuntu_500Medium', fontSize: 11 } }}>
     <Tabs.Screen name="nearby" options={{ title: 'Discover', tabBarIcon: ({ color, size }) => <MapPin color={color} size={size} /> }} />
     <Tabs.Screen name="requests" options={{ title: 'Requests', tabBarIcon: ({ color, size }) => <Inbox color={color} size={size} /> }} />
     <Tabs.Screen name="events" options={{ title: 'Events', tabBarIcon: ({ color, size }) => <CalendarDays color={color} size={size} /> }} />
