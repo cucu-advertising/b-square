@@ -42,34 +42,34 @@ export default function EmailSignIn() {
     finally { setBusy(false); }
   };
 
-  return <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#F8FAFE' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-    <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 26, paddingTop: 58, paddingBottom: 44 }}>
+  return <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#F7F6F2' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 26, paddingTop: 42, paddingBottom: 44 }}>
       <ScalePressable onPress={() => router.back()} style={{ paddingVertical: 12 }}>
-        <Text style={{ fontFamily: 'Ubuntu_500Medium', color: '#234FC8' }}>← Back</Text>
+        <Text style={{ fontFamily: 'Ubuntu_500Medium', color: '#385A53' }}>← Back</Text>
       </ScalePressable>
-      <Text style={{ fontFamily: 'Ubuntu_700Bold', color: '#102758', fontSize: 34, lineHeight: 41, marginTop: 35 }}>Sign in with email.</Text>
-      <Text style={{ fontFamily: 'Ubuntu_400Regular', color: '#61718D', fontSize: 16, lineHeight: 25, marginTop: 14, marginBottom: 32 }}>
-        No password required. Get a one-time code at your registered email address.
+      <Text style={{ fontFamily: 'Ubuntu_700Bold', color: '#223A33', fontSize: 35, lineHeight: 43, marginTop: 31 }}>Welcome back.</Text>
+      <Text style={{ fontFamily: 'Ubuntu_400Regular', color: '#687870', fontSize: 16, lineHeight: 25, marginTop: 14, marginBottom: 32 }}>
+        Your next connection is one verification away. Enter your registered email and we’ll send a secure sign-in code.
       </Text>
-      <Text style={{ fontFamily: 'Ubuntu_500Medium', color: '#526789', marginBottom: 9 }}>Registered email</Text>
+      <Text style={{ fontFamily: 'Ubuntu_500Medium', color: '#5E7067', marginBottom: 9 }}>Registered email</Text>
       <TextInput
         value={email} onChangeText={v => { setEmail(v); setSent(false); setCode(''); setInfo(''); }}
         autoCapitalize="none" autoCorrect={false} autoComplete="email" textContentType="emailAddress"
         keyboardType="email-address" accessibilityLabel="Registered email"
         placeholder="you@company.com"
-        style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DDE5F3', borderRadius: 15, padding: 17, color: '#102758', fontFamily: 'Ubuntu_400Regular', fontSize: 16, marginBottom: 18 }}
+        style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E0E5DD', borderRadius: 15, padding: 17, color: '#223A33', fontFamily: 'Ubuntu_400Regular', fontSize: 16, marginBottom: 18 }}
       />
       {!sent ? <PrimaryButton label={busy ? 'Sending...' : 'Send email code'} disabled={!validEmail || busy} onPress={requestCode} /> : <>
-        <Text style={{ fontFamily: 'Ubuntu_500Medium', color: '#526789', marginTop: 22, marginBottom: 9 }}>6-digit email code</Text>
-        <TextInput value={code} onChangeText={v => setCode(v.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={6} accessibilityLabel="Email verification code" placeholder="000000" style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DDE5F3', borderRadius: 15, padding: 18, color: '#102758', fontFamily: 'Ubuntu_700Bold', fontSize: 25, letterSpacing: 7, textAlign: 'center', marginBottom: 18 }} />
+        <Text style={{ fontFamily: 'Ubuntu_500Medium', color: '#5E7067', marginTop: 22, marginBottom: 9 }}>6-digit email code</Text>
+        <TextInput value={code} onChangeText={v => setCode(v.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={6} accessibilityLabel="Email verification code" placeholder="000000" style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E0E5DD', borderRadius: 15, padding: 18, color: '#223A33', fontFamily: 'Ubuntu_700Bold', fontSize: 25, letterSpacing: 7, textAlign: 'center', marginBottom: 18 }} />
         <PrimaryButton label={busy ? 'Verifying...' : 'Verify and sign in'} disabled={busy || code.length !== 6} onPress={verify} />
         <ScalePressable accessibilityRole="button" onPress={requestCode} disabled={busy} style={{ paddingVertical: 21, alignItems: 'center' }}>
-          <Text style={{ color: '#234FC8', fontFamily: 'Ubuntu_500Medium' }}>Resend code (available after 60 seconds)</Text>
+          <Text style={{ color: '#385A53', fontFamily: 'Ubuntu_500Medium' }}>Resend code (available after 60 seconds)</Text>
         </ScalePressable>
       </>}
-      {info ? <Text style={{ color: '#526789', fontFamily: 'Ubuntu_400Regular', marginTop: 15, lineHeight: 22 }}>{info}</Text> : null}
-      {error ? <Text style={{ color: '#A52D38', fontFamily: 'Ubuntu_400Regular', marginTop: 15, lineHeight: 22 }}>{error}</Text> : null}
-      <Text style={{ color: '#8794AA', fontFamily: 'Ubuntu_400Regular', fontSize: 12, lineHeight: 19, marginTop: 30 }}>
+      {info ? <Text style={{ color: '#5E7067', fontFamily: 'Ubuntu_400Regular', marginTop: 15, lineHeight: 22 }}>{info}</Text> : null}
+      {error ? <Text style={{ color: '#A04440', fontFamily: 'Ubuntu_400Regular', marginTop: 15, lineHeight: 22 }}>{error}</Text> : null}
+      <Text style={{ color: '#909D92', fontFamily: 'Ubuntu_400Regular', fontSize: 12, lineHeight: 19, marginTop: 30 }}>
         Codes expire in 5 minutes and are valid for one sign-in. Never share your code.
       </Text>
     </ScrollView>
