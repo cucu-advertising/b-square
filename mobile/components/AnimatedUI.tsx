@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import { Pressable, PressableProps, StyleProp, ViewStyle } from 'react-native';
+import { haptic } from '../lib/haptics';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -20,9 +22,11 @@ export function ScalePressable({
   children,
   onPressIn,
   onPressOut,
+  onPress,
   ...rest
 }: ScalePressableProps) {
   const scale = useSharedValue(1);
+  const reducedMotion = useReducedMotion();
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -31,13 +35,14 @@ export function ScalePressable({
   return (
     <AnimatedPressable
       {...rest}
+      onPress={(event) => { haptic('selection'); onPress?.(event); }}
       style={[style, animatedStyle]}
       onPressIn={(e) => {
-        scale.value = withSpring(scaleTo, { damping: 18, stiffness: 320 });
+        if (!reducedMotion) scale.value = withSpring(scaleTo, { damping: 24, stiffness: 380 });
         onPressIn?.(e);
       }}
       onPressOut={(e) => {
-        scale.value = withSpring(1, { damping: 18, stiffness: 320 });
+        if (!reducedMotion) scale.value = withSpring(1, { damping: 24, stiffness: 380 });
         onPressOut?.(e);
       }}
     >

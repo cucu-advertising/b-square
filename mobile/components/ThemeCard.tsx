@@ -59,11 +59,11 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   label: {
-    fontFamily: 'SpaceGrotesk_600SemiBold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 16,
   },
   tag: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Ubuntu_400Regular',
     fontSize: 12,
   },
 });
