@@ -1,0 +1,44 @@
+name: Bsquare iOS release checks
+
+on:
+  push:
+    branches:
+      - feature/verified-admission-and-safety
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/ios-release-checks.yml'
+  workflow_dispatch:
+
+jobs:
+  validate-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - name: Install exact lockfile dependencies
+        working-directory: mobile
+        run: npm ci
+      - name: Verify Expo SDK package compatibility
+        working-directory: mobile
+        run: CI=1 npx expo install --check
+      - name: TypeScript typecheck
+        working-directory: mobile
+        run: npx tsc --noEmit
+      - name: Verify existing App Store bundle ID and dark appearance
+        working-directory: mobile
+        run: |
+          node - <<'NODE'
+          const expo = require('./app.config.js')();
+          if (expo.ios?.bundleIdentifier !== 'com.cucuadvertising.bsquare') {
+            throw new Error('Unexpected iOS bundle ID; existing App Store identity must be retained');
+          }
+          if (expo.userInterfaceStyle !== 'dark') {
+            throw new Error('Dark user interface style is not enabled');
+          }
+          console.log('Verified iOS bundle ID and appearance');
+          NODE
