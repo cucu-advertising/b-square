@@ -39,9 +39,9 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: isWeb ? '#DFE8F6' : colors.void, alignItems: 'stretch' }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.void, alignItems: 'stretch' }}>
       <View style={{ flex: 1, width: '100%', maxWidth: isWeb ? 430 : undefined, alignSelf: 'center', backgroundColor: colors.void, overflow: 'hidden', ...(isWeb ? { shadowColor: '#102758', shadowOpacity: 0.16, shadowRadius: 24, elevation: 8 } : {}) }}>
-      <StatusBar style={'dark'} />
+      <StatusBar style={colors.void === '#080A0D' ? 'light' : 'auto'} />
       <Stack
         screenOptions={{
           headerShown: false,
