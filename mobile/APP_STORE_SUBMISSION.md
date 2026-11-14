@@ -14,7 +14,7 @@ Last preparation pass: 14 November 2026. This is a release **checklist**, not ev
 
 - [ ] GitHub Actions **Bsquare iOS release checks** is green: `npm ci`, Expo compatibility, TypeScript, app identity.
 - [ ] EAS project/owner are linked to the **existing** Bsquare Club project and Apple team.
-- [ ] In EAS production env, `EXPO_PUBLIC_BSQUARE_API_URL` points to the correct **FastAPI mobile backend**, not the separate Express `/api` backend. Confirm `<BASE_URL>/api/v1/health` returns status `ok`.
+- [ ] In EAS production env, `EXPO_PUBLIC_BSQUARE_API_URL` points to the production FastAPI mobile backend at `https://api.bsquare.club`, not the separate Express `/api` backend. Confirm `<BASE_URL>/api/v1/health` returns status `ok`.
 - [ ] iOS Firebase `BSQUARE_GOOGLE_SERVICE_INFO_PLIST` EAS file secret and native Firebase configuration are present, or explicitly remove/disable the native phone-auth feature before building. Do not ship an exposed broken SMS flow.
 - [ ] Confirm the existing App Store Connect latest iOS build number and run `eas build:version:set` for **iOS** before the first build under remote versioning. Production auto-increments iOS versions.
 - [ ] Build and launch on a **physical iPhone**. Verify login, profile, discovery, requests, chat, block/report and destructive account deletion.
