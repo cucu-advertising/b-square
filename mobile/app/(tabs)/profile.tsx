@@ -26,7 +26,6 @@ export default function ProfileScreen() {
     {user?.email ? <Text style={{ color: colors.textDim }}>Email: {user.email}</Text> : null}
     {error ? <Text style={{ color: '#A04440' }}>{error}</Text> : null}
     <PrimaryButton label={saving ? 'Saving...' : 'Save changes'} disabled={saving || !name.trim()} onPress={save} />
-    <ScalePressable onPress={() => router.push('/link-phone')} style={{ marginTop: 16, paddingVertical: 12 }}><Text style={{ color: colors.accent, fontFamily: 'Ubuntu_500Medium' }}>Link phone for SMS sign-in →</Text></ScalePressable>
     <ScalePressable onPress={() => router.push('/blocked')} style={{ marginTop: 25, paddingVertical: 12 }}><Text style={{ color: colors.text, fontFamily: 'Ubuntu_500Medium' }}>Blocked members →</Text></ScalePressable>
     <ScalePressable accessibilityRole="link" onPress={() => { void Linking.openURL('https://bsquare.club/privacy-policy'); }} style={{ paddingVertical: 12 }}><Text style={{ color: colors.accent, fontFamily: 'Ubuntu_500Medium' }}>Privacy policy ↗</Text></ScalePressable>
     <ScalePressable onPress={logout} style={{ paddingVertical: 12 }}><Text style={{ color: colors.accent, fontFamily: 'Ubuntu_500Medium' }}>Sign out</Text></ScalePressable>
