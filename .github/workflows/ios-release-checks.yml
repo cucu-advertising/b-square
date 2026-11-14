@@ -62,13 +62,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 7
     steps:
-      - name: Check publicly accessible backend and legal pages
+      - name: Diagnose mobile API and legal URLs individually
+        shell: bash
         run: |
-          set -eu
-          for url in \
-            'https://bsquare-backend.onrender.com/api/v1/health' \
-            'https://bsquare.club/privacy-policy' \
-            'https://bsquare.club/delete-account/'; do
-            echo "Checking $url"
-            curl --location --fail --silent --show-error --retry 2 --retry-delay 5 --max-time 85 --output /dev/null "$url"
-          done
+          set -u
+          failed=0
+          while IFS='|' read -r label url required; do
+            [ -n "$label" ] || continue
+            status=$(curl --location --silent --show-error --max-time 55 --output /dev/null --write-out '%{http_code}' "$url") || status="000"
+            echo "$label -> HTTP $status ($url)"
+            if [ "$required" = "required" ] && [ "$status" != "200" ]; then
+              echo "::error title=Release URL unavailable::$label is HTTP $status. Verify correct deployment before App Store submission."
+              failed=1
+            fi
+          done <<'URLS'
+          Node Express diagnostic|https://bsquare-backend.onrender.com/api/health|informational
+          Mobile FastAPI example backend|https://bsquare-backend.onrender.com/api/v1/health|required
+          Privacy policy|https://bsquare.club/privacy-policy|required
+          Account deletion help|https://bsquare.club/delete-account/|required
+          URLS
+          exit "$failed"
