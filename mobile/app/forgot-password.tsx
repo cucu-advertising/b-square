@@ -37,7 +37,7 @@ export default function ForgotPasswordScreen() {
         </Text>
         {!sent ? <>
           <Text style={{ fontFamily: 'Ubuntu_500Medium', color: colors.textDim, marginBottom: 8 }}>Email address</Text>
-          <TextInput value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email" textContentType="emailAddress" returnKeyType="done" onSubmitEditing={submit} accessibilityLabel="Registered email address" placeholder="you@company.com" style={{ borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 14, backgroundColor: colors.text, padding: 16, color: colors.text, fontFamily: 'Ubuntu_400Regular', fontSize: 16, marginBottom: 18 }} />
+          <TextInput value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email" textContentType="emailAddress" returnKeyType="done" onSubmitEditing={submit} accessibilityLabel="Registered email address" placeholder="you@company.com" style={{ borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 14, backgroundColor: colors.surface, padding: 16, color: colors.text, fontFamily: 'Ubuntu_400Regular', fontSize: 16, marginBottom: 18 }} />
           {error ? <Text style={{ color: '#A04440', marginBottom: 14 }}>{error}</Text> : null}
           <PrimaryButton label={busy ? 'Sending...' : 'Send reset link'} disabled={busy || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())} onPress={submit} />
         </> : <PrimaryButton label="Back to sign in" onPress={() => router.replace('/login')} />}
