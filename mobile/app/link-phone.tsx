@@ -1,3 +1,4 @@
+import { useThemeColors } from '../lib/theme';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -7,6 +8,7 @@ import { sendPhoneCode } from '../lib/firebasePhone';
 import { useSession } from '../lib/session';
 
 export default function LinkPhoneScreen() {
+  const colors = useThemeColors();
   const router = useRouter();
   const user = useSession(s => s.user);
   const [phone, setPhone] = useState('');
@@ -24,19 +26,19 @@ export default function LinkPhoneScreen() {
     } finally { setBusy(false); }
   };
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#F7F6F2' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.void }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 25, paddingTop: 64, flexGrow: 1 }}>
         <ScalePressable onPress={() => router.back()} style={{ paddingBottom: 35 }}>
-          <Text style={{ color: '#385A53', fontFamily: 'Ubuntu_500Medium' }}>← My profile</Text>
+          <Text style={{ color: colors.accent, fontFamily: 'Ubuntu_500Medium' }}>← My profile</Text>
         </ScalePressable>
-        <Text style={{ fontFamily: 'Ubuntu_700Bold', fontSize: 32, color: '#223A33' }}>Link your phone</Text>
-        <Text style={{ fontFamily: 'Ubuntu_400Regular', color: '#687870', lineHeight: 24, marginTop: 14, marginBottom: 28 }}>
+        <Text style={{ fontFamily: 'Ubuntu_700Bold', fontSize: 32, color: colors.text }}>Link your phone</Text>
+        <Text style={{ fontFamily: 'Ubuntu_400Regular', color: colors.textDim, lineHeight: 24, marginTop: 14, marginBottom: 28 }}>
           Verify your Indian mobile number by SMS to enable future phone sign-in. You must be signed in to link a number to your account.
         </Text>
-        <Text style={{ color: '#5E7067', fontFamily: 'Ubuntu_500Medium', marginBottom: 8 }}>Mobile number</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderRadius: 14, borderWidth: 1, borderColor: '#E0E5DD', paddingHorizontal: 15, marginBottom: 14 }}>
-          <Text style={{ color: '#223A33', fontSize: 16 }}>+91</Text>
-          <TextInput value={phone} onChangeText={s => setPhone(s.replace(/\D/g, '').slice(0, 10))} maxLength={10} keyboardType="phone-pad" accessibilityLabel="Indian mobile number" placeholder="98765 43210" style={{ flex: 1, padding: 16, color: '#223A33', fontSize: 16 }} />
+        <Text style={{ color: colors.textDim, fontFamily: 'Ubuntu_500Medium', marginBottom: 8 }}>Mobile number</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: 14, borderWidth: 1, borderColor: colors.glassBorder, paddingHorizontal: 15, marginBottom: 14 }}>
+          <Text style={{ color: colors.text, fontSize: 16 }}>+91</Text>
+          <TextInput value={phone} onChangeText={s => setPhone(s.replace(/\D/g, '').slice(0, 10))} maxLength={10} keyboardType="phone-pad" accessibilityLabel="Indian mobile number" placeholderTextColor={colors.textFaint} placeholder="98765 43210" style={{ flex: 1, padding: 16, color: colors.text, fontSize: 16 }} />
         </View>
         {error ? <Text style={{ color: '#A04440', marginBottom: 14 }}>{error}</Text> : null}
         <PrimaryButton label={busy ? 'Sending...' : 'Send verification code'} disabled={!user || busy || !/^[6-9]\d{9}$/.test(phone) || Platform.OS === 'web'} onPress={send} />
