@@ -9,6 +9,10 @@ module.exports = () => {
   const androidFile = process.env.BSQUARE_GOOGLE_SERVICES_JSON ||
     (fs.existsSync(localAndroid) ? localAndroid : undefined);
   const iosFile = process.env.BSQUARE_GOOGLE_SERVICE_INFO_PLIST;
+  // Keep the bundle ID identical to the existing Bsquare Club App Store record.
+  if (process.env.BSQUARE_IOS_BUNDLE_ID && process.env.BSQUARE_IOS_BUNDLE_ID !== base.ios.bundleIdentifier) {
+    throw new Error('BSQUARE_IOS_BUNDLE_ID does not match the existing App Store bundle identifier.');
+  }
   const plugins = [
     ...base.plugins,
     '@react-native-firebase/app',
@@ -25,7 +29,6 @@ module.exports = () => {
     },
     ios: {
       ...base.ios,
-      ...(process.env.BSQUARE_IOS_BUNDLE_ID ? { bundleIdentifier: process.env.BSQUARE_IOS_BUNDLE_ID } : {}),
       ...(iosFile ? { googleServicesFile: iosFile } : {}),
     },
     plugins,
