@@ -30,17 +30,17 @@ export type Theme = {
 export const THEMES: Theme[] = [
   {
     key: 'bsquare',
-    label: 'B Square',
-    tag: 'Porcelain · eucalyptus · quiet luxury',
+    label: 'Bsquare Dark',
+    tag: 'Black · graphite · light azure',
     colors: {
-      void: '#F7F6F2', voidAlt: '#EEEFE8', surface: '#FFFFFF',
-      glass: '#F0F2EC', glassBorder: '#E0E5DD',
-      gradientStart: '#385A53', gradientEnd: '#24473F',
-      accent: '#385A53', coral: '#A07862',
-      holoA: '#C3D4C5', holoB: '#E8EBE4',
-      text: '#223A33', textDim: '#687870', textFaint: '#97A19A',
-      onAccent: '#FFFFFF', heroA: '#F7F6F2', heroB: '#EBEEE7',
-      glow: 'rgba(56,90,83,0.16)', glowSoft: 'rgba(56,90,83,0.07)',
+      void: '#080A0D', voidAlt: '#10141A', surface: '#191D24',
+      glass: '#191D24', glassBorder: '#303743',
+      gradientStart: '#35B8FF', gradientEnd: '#259CFA',
+      accent: '#35B8FF', coral: '#EF7777',
+      holoA: '#6CCBFF', holoB: '#B4E6FF',
+      text: '#F7F9FC', textDim: '#A4AFBF', textFaint: '#727E91',
+      onAccent: '#06111E', heroA: '#111D2A', heroB: '#080A0D',
+      glow: 'rgba(53,184,255,0.17)', glowSoft: 'rgba(53,184,255,0.07)',
     },
   },
   {
