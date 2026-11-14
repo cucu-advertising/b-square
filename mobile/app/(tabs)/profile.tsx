@@ -1,6 +1,6 @@
 import { useThemeColors } from '../../lib/theme';
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Linking, ScrollView, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { ScalePressable } from '../../components/AnimatedUI';
@@ -28,6 +28,7 @@ export default function ProfileScreen() {
     <PrimaryButton label={saving ? 'Saving...' : 'Save changes'} disabled={saving || !name.trim()} onPress={save} />
     <ScalePressable onPress={() => router.push('/link-phone')} style={{ marginTop: 16, paddingVertical: 12 }}><Text style={{ color: colors.accent, fontFamily: 'Ubuntu_500Medium' }}>Link phone for SMS sign-in →</Text></ScalePressable>
     <ScalePressable onPress={() => router.push('/blocked')} style={{ marginTop: 25, paddingVertical: 12 }}><Text style={{ color: colors.text, fontFamily: 'Ubuntu_500Medium' }}>Blocked members →</Text></ScalePressable>
+    <ScalePressable accessibilityRole="link" onPress={() => { void Linking.openURL('https://bsquare.club/privacy-policy'); }} style={{ paddingVertical: 12 }}><Text style={{ color: colors.accent, fontFamily: 'Ubuntu_500Medium' }}>Privacy policy ↗</Text></ScalePressable>
     <ScalePressable onPress={logout} style={{ paddingVertical: 12 }}><Text style={{ color: colors.accent, fontFamily: 'Ubuntu_500Medium' }}>Sign out</Text></ScalePressable>
     <Text style={{ color: colors.textDim, fontFamily: 'Ubuntu_500Medium', marginTop: 16 }}>Confirm password before account deletion</Text>
     <TextInput value={deletePassword} onChangeText={setDeletePassword} secureTextEntry autoCapitalize="none" placeholderTextColor={colors.textFaint} placeholder="Your current password" style={{ borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 14, backgroundColor: colors.surface, padding: 15, color: colors.text }} />
