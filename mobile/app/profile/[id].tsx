@@ -1,3 +1,4 @@
+import { useThemeColors } from '../../lib/theme';
 import { useCallback, useState } from 'react';
 import { Alert, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useFocusEffect, useRouter } from 'expo-router';
@@ -6,6 +7,7 @@ import { SectionHeading, LoadingState, MessageState } from '../../components/Scr
 import { ScalePressable } from '../../components/AnimatedUI';
 import { PrimaryButton } from '../../components/PrimaryButton';
 export default function MemberScreen() {
+  const colors = useThemeColors();
   const { id } = useLocalSearchParams<{ id: string }>(); const router = useRouter();
   const [member, setMember] = useState<Member | null>(null); const [loading, setLoading] = useState(true); const [busy, setBusy] = useState(false);
   const [error, setError] = useState(''); const [reason, setReason] = useState(''); const [showReport, setShowReport] = useState(false);
@@ -29,7 +31,7 @@ export default function MemberScreen() {
       {error ? <Text style={{ color: '#A52D38' }}>{error}</Text> : null}
       {member.connection_status === 'connected' ? <PrimaryButton label="Message" onPress={() => router.push(`/chat/${id}`)} /> : <PrimaryButton label={member.connection_status === 'request_sent' ? 'Request pending' : member.connection_status === 'request_received' ? 'See requests' : busy ? 'Sending...' : 'Request connection'} disabled={busy || member.connection_status === 'request_sent'} onPress={() => member.connection_status === 'request_received' ? router.push('/(tabs)/requests') : action('connect')} />}
       <ScalePressable onPress={() => setShowReport(old => !old)} style={{ marginTop: 28, paddingVertical: 10 }}><Text style={{ color: '#526789', fontFamily: 'Ubuntu_500Medium' }}>Report member</Text></ScalePressable>
-      {showReport ? <View style={{ gap: 12 }}><TextInput multiline value={reason} onChangeText={setReason} placeholder="Reason for your report (required)" maxLength={500} style={{ backgroundColor: 'white', borderWidth: 1, borderColor: '#DDE5F3', borderRadius: 12, padding: 14, minHeight: 95, textAlignVertical: 'top', color: '#102758' }} /><PrimaryButton label="Submit report" disabled={busy || reason.trim().length < 5} onPress={() => action('report')} /></View> : null}
+      {showReport ? <View style={{ gap: 12 }}><TextInput multiline value={reason} onChangeText={setReason} placeholderTextColor={colors.textFaint} placeholder="Reason for your report (required)" maxLength={500} style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: '#DDE5F3', borderRadius: 12, padding: 14, minHeight: 95, textAlignVertical: 'top', color: '#102758' }} /><PrimaryButton label="Submit report" disabled={busy || reason.trim().length < 5} onPress={() => action('report')} /></View> : null}
       <ScalePressable onPress={confirmBlock} style={{ paddingVertical: 12 }}><Text style={{ color: '#A52D38', fontFamily: 'Ubuntu_500Medium' }}>Block member</Text></ScalePressable>
     </View>
   </ScrollView> : <MessageState message="Profile unavailable" />}</View>;
