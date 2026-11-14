@@ -35,6 +35,12 @@
       "expo-splash-screen",
       "expo-status-bar",
       "expo-secure-store"
-    ]
+    ],
+    "owner": "cucuadvertising",
+    "extra": {
+      "eas": {
+        "projectId": "b37389d1-6655-451e-9a41-3781771849ea"
+      }
+    }
   }
 }
