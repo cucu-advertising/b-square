@@ -1,3 +1,4 @@
+import { useThemeColors } from '../lib/theme';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -7,6 +8,7 @@ import { api } from '../lib/api';
 import { useSession } from '../lib/session';
 
 export default function EmailSignIn() {
+  const colors = useThemeColors();
   const router = useRouter();
   const params = useLocalSearchParams<{ email?: string }>();
   const signInWithEmailCode = useSession(s => s.signInWithEmailCode);
@@ -42,40 +44,40 @@ export default function EmailSignIn() {
     finally { setBusy(false); }
   };
 
-  return <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#F7F6F2' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+  return <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.void }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
     <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 26, paddingTop: 44, paddingBottom: 56 }}>
       <ScalePressable onPress={() => router.back()} style={{ paddingVertical: 12 }}>
-        <Text style={{ fontFamily: 'Ubuntu_500Medium', color: '#385A53' }}>← Back</Text>
+        <Text style={{ fontFamily: 'Ubuntu_500Medium', color: colors.accent }}>← Back</Text>
       </ScalePressable>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 47, marginBottom: 15 }}>
         <View style={{ height: 7, width: 7, backgroundColor: '#79988A', borderRadius: 7 }} />
         <Text style={{ fontFamily: 'Ubuntu_700Bold', color: '#527266', fontSize: 11, letterSpacing: 2.2 }}>B SQUARE  /  PRIVATE NETWORK</Text>
       </View>
-      <Text style={{ fontFamily: 'Ubuntu_700Bold', color: '#223A33', fontSize: 38, lineHeight: 44 }}>Welcome back.</Text>
-      <Text style={{ fontFamily: 'Ubuntu_400Regular', color: '#687870', fontSize: 16, lineHeight: 25, marginTop: 14, marginBottom: 31 }}>
+      <Text style={{ fontFamily: 'Ubuntu_700Bold', color: colors.text, fontSize: 38, lineHeight: 44 }}>Welcome back.</Text>
+      <Text style={{ fontFamily: 'Ubuntu_400Regular', color: colors.textDim, fontSize: 16, lineHeight: 25, marginTop: 14, marginBottom: 31 }}>
         Your next connection is one verification away. Enter your registered email and we’ll send a secure sign-in code.
       </Text>
       <View style={{ backgroundColor: '#EEF1EA', borderRadius: 24, padding: 20, marginBottom: 20, borderWidth: 1, borderColor: '#E3E9E0' }}>
-      <Text style={{ fontFamily: 'Ubuntu_500Medium', color: '#5E7067', marginBottom: 9, fontSize: 13 }}>YOUR EMAIL ADDRESS</Text>
+      <Text style={{ fontFamily: 'Ubuntu_500Medium', color: colors.textDim, marginBottom: 9, fontSize: 13 }}>YOUR EMAIL ADDRESS</Text>
       <TextInput
         value={email} onChangeText={v => { setEmail(v); setSent(false); setCode(''); setInfo(''); }}
         autoCapitalize="none" autoCorrect={false} autoComplete="email" textContentType="emailAddress"
         keyboardType="email-address" accessibilityLabel="Registered email"
         placeholder="you@company.com"
-        style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#D5DED4', borderRadius: 14, padding: 17, color: '#223A33', fontFamily: 'Ubuntu_400Regular', fontSize: 16, marginBottom: 18 }}
+        style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: '#D5DED4', borderRadius: 14, padding: 17, color: colors.text, fontFamily: 'Ubuntu_400Regular', fontSize: 16, marginBottom: 18 }}
       />
       {!sent ? <PrimaryButton label={busy ? 'Sending...' : 'Send email code'} disabled={!validEmail || busy} onPress={requestCode} /> : <>
-        <Text style={{ fontFamily: 'Ubuntu_500Medium', color: '#5E7067', marginTop: 22, marginBottom: 9 }}>6-digit email code</Text>
-        <TextInput value={code} onChangeText={v => setCode(v.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={6} accessibilityLabel="Email verification code" placeholder="000000" style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E0E5DD', borderRadius: 15, padding: 18, color: '#223A33', fontFamily: 'Ubuntu_700Bold', fontSize: 25, letterSpacing: 7, textAlign: 'center', marginBottom: 18 }} />
+        <Text style={{ fontFamily: 'Ubuntu_500Medium', color: colors.textDim, marginTop: 22, marginBottom: 9 }}>6-digit email code</Text>
+        <TextInput value={code} onChangeText={v => setCode(v.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={6} accessibilityLabel="Email verification code" placeholder="000000" style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 15, padding: 18, color: colors.text, fontFamily: 'Ubuntu_700Bold', fontSize: 25, letterSpacing: 7, textAlign: 'center', marginBottom: 18 }} />
         <PrimaryButton label={busy ? 'Verifying...' : 'Verify and sign in'} disabled={busy || code.length !== 6} onPress={verify} />
         <ScalePressable accessibilityRole="button" onPress={requestCode} disabled={busy} style={{ paddingVertical: 21, alignItems: 'center' }}>
-          <Text style={{ color: '#385A53', fontFamily: 'Ubuntu_500Medium' }}>Resend code (available after 60 seconds)</Text>
+          <Text style={{ color: colors.accent, fontFamily: 'Ubuntu_500Medium' }}>Resend code (available after 60 seconds)</Text>
         </ScalePressable>
       </>}
       </View>
-      {info ? <Text style={{ color: '#5E7067', fontFamily: 'Ubuntu_400Regular', marginTop: 15, lineHeight: 22 }}>{info}</Text> : null}
+      {info ? <Text style={{ color: colors.textDim, fontFamily: 'Ubuntu_400Regular', marginTop: 15, lineHeight: 22 }}>{info}</Text> : null}
       {error ? <Text style={{ color: '#A04440', fontFamily: 'Ubuntu_400Regular', marginTop: 15, lineHeight: 22 }}>{error}</Text> : null}
-      <Text style={{ color: '#909D92', fontFamily: 'Ubuntu_400Regular', fontSize: 12, lineHeight: 19, marginTop: 16 }}>
+      <Text style={{ color: colors.textFaint, fontFamily: 'Ubuntu_400Regular', fontSize: 12, lineHeight: 19, marginTop: 16 }}>
         Codes expire in 5 minutes and are valid for one sign-in. Never share your code.
       </Text>
     </ScrollView>
