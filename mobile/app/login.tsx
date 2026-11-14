@@ -1,6 +1,6 @@
 import { useThemeColors } from '../lib/theme';
 import { useRef, useState } from 'react';
-import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View, Keyboard } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View, Keyboard, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScalePressable } from '../components/AnimatedUI';
@@ -38,6 +38,7 @@ export default function LoginScreen() {
       {error ? <Text style={{ color: '#A04440', fontFamily: 'Ubuntu_400Regular', marginBottom: 12 }}>{error}</Text> : null}
       <ScalePressable accessibilityRole="button" onPress={() => { Keyboard.dismiss(); router.push('/forgot-password'); }} style={{ alignSelf: 'flex-end', paddingVertical: 14, marginTop: -2 }}><Text style={{ color: colors.accent, fontFamily: 'Ubuntu_500Medium', fontSize: 14 }}>Forgot password?</Text></ScalePressable>
       <View style={{ marginTop: 8 }}><PrimaryButton label={busy ? 'Signing in...' : 'Sign in'} disabled={!isConfigured() || busy || !email.includes('@') || !password} onPress={submit} /></View>
+      <ScalePressable accessibilityRole="link" onPress={() => { void Linking.openURL('https://bsquare.club/privacy-policy'); }} style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 6 }}><Text style={{ fontFamily: 'Ubuntu_400Regular', fontSize: 13, color: colors.textDim }}>Privacy policy</Text></ScalePressable>
       <ScalePressable onPress={() => router.push('/register')} style={{ paddingVertical: 24, alignItems: 'center' }}><Text style={{ color: colors.accent, fontFamily: 'Ubuntu_500Medium', fontSize: 15 }}>Apply for B Square membership →</Text></ScalePressable>
     </ScrollView>
   </KeyboardAvoidingView>;
