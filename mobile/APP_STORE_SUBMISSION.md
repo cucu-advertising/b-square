@@ -15,7 +15,8 @@ Last preparation pass: 14 November 2026. This is a release **checklist**, not ev
 - [ ] GitHub Actions **Bsquare iOS release checks** is green: `npm ci`, Expo compatibility, TypeScript, app identity.
 - [ ] EAS project/owner are linked to the **existing** Bsquare Club project and Apple team.
 - [ ] In EAS production env, `EXPO_PUBLIC_BSQUARE_API_URL` points to the production FastAPI mobile backend at `https://api.bsquare.club`, not the separate Express `/api` backend. Confirm `<BASE_URL>/api/v1/health` returns status `ok`.
-- [ ] iOS Firebase `BSQUARE_GOOGLE_SERVICE_INFO_PLIST` EAS file secret and native Firebase configuration are present, or explicitly remove/disable the native phone-auth feature before building. Do not ship an exposed broken SMS flow.
+- [x] Disabled unused native Firebase SMS authentication, phone linking, and legacy SMS UI for this email-code release. iOS Firebase plist is not required.
+- [ ] Production Resend email-code delivery is working for a pre-approved reviewer account; the code expires after 5 minutes. This was previously tested on Android, but Apple reviewer access still needs valid credentials.
 - [ ] Confirm the existing App Store Connect latest iOS build number and run `eas build:version:set` for **iOS** before the first build under remote versioning. Production auto-increments iOS versions.
 - [ ] Build and launch on a **physical iPhone**. Verify login, profile, discovery, requests, chat, block/report and destructive account deletion.
 - [ ] Provide a permanent **pre-approved demo account** with real data and at least one other discoverable verified member in the same city for App Review. Provide a **second demo account** for deletion testing. Do not use real personal accounts or guess credentials.
