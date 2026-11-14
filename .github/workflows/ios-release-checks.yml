@@ -77,7 +77,7 @@ jobs:
             fi
           done <<'URLS'
           Node Express diagnostic|https://bsquare-backend.onrender.com/api/health|informational
-          Mobile FastAPI example backend|https://bsquare-backend.onrender.com/api/v1/health|required
+          Mobile FastAPI production backend|https://api.bsquare.club/api/v1/health|required
           Privacy policy|https://bsquare.club/privacy-policy|required
           Account deletion help|https://bsquare.club/delete-account/|required
           URLS
