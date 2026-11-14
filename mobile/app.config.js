@@ -17,7 +17,7 @@ module.exports = () => {
     ...base.plugins,
     '@react-native-firebase/app',
     '@react-native-firebase/auth',
-    ['expo-build-properties', { ios: { useFrameworks: 'static' } }],
+    ['expo-build-properties', { ios: { useFrameworks: 'static', enableSceneSupport: true } }],
   ];
   return {
     ...base,
