@@ -60,7 +60,7 @@ export default function RegisterScreen() {
       <TextInput accessibilityLabel={label} value={data[key]}
         onChangeText={value => setData(old => ({ ...old, [key]: value }))}
         autoCorrect={false} onFocus={reveal} placeholder={label}
-        style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 14, padding: 16, color: colors.text, fontSize: 16, fontFamily: 'Ubuntu_400Regular' }}
+        style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 14, padding: 16, color: colors.text, fontSize: 16, fontFamily: 'Ubuntu_400Regular' }}
         {...props} />
     </View>;
   return <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.void }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -80,7 +80,7 @@ export default function RegisterScreen() {
         <TextInput accessibilityLabel="New member email address" value={email}
           onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} autoComplete="email" textContentType="emailAddress"
           keyboardType="email-address" placeholder="you@company.com" onFocus={reveal} returnKeyType="done" onSubmitEditing={sendCode}
-          style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 14, padding: 16, color: colors.text, fontFamily: 'Ubuntu_400Regular', fontSize: 16, marginBottom: 20 }} />
+          style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 14, padding: 16, color: colors.text, fontFamily: 'Ubuntu_400Regular', fontSize: 16, marginBottom: 20 }} />
         <PrimaryButton label={busy ? 'Sending...' : 'Send verification code'} disabled={!validEmail || busy || !isConfigured()} onPress={sendCode} />
       </> : null}
       {step === 'code' ? <>
@@ -88,7 +88,7 @@ export default function RegisterScreen() {
         <TextInput accessibilityLabel="Six-digit email verification code" value={code}
           onChangeText={v => setCode(v.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad"
           autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={6} placeholder="000000" onFocus={reveal}
-          style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 14, padding: 18, color: colors.text, fontFamily: 'Ubuntu_700Bold', fontSize: 25, letterSpacing: 7, textAlign: 'center', marginBottom: 18 }} />
+          style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 14, padding: 18, color: colors.text, fontFamily: 'Ubuntu_700Bold', fontSize: 25, letterSpacing: 7, textAlign: 'center', marginBottom: 18 }} />
         <PrimaryButton label={busy ? 'Verifying...' : 'Verify email'} disabled={busy || code.length !== 6} onPress={verifyCode} />
         <ScalePressable onPress={sendCode} disabled={busy} style={{ alignItems: 'center', paddingVertical: 22 }}>
           <Text style={{ color: colors.accent, fontFamily: 'Ubuntu_500Medium' }}>Resend code (after 60 seconds)</Text>
@@ -105,7 +105,7 @@ export default function RegisterScreen() {
         <Text style={{ color: colors.textDim, fontFamily: 'Ubuntu_500Medium', marginBottom: 9 }}>Industry (optional)</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 21 }} keyboardShouldPersistTaps="handled">
           {INDUSTRIES.map(industry => <ScalePressable key={industry} onPress={() => setData(prev => ({ ...prev, industry }))}
-            style={{ borderRadius: 18, paddingHorizontal: 15, paddingVertical: 10, marginRight: 8, backgroundColor: data.industry === industry ? colors.accent : '#EEF1EA' }}>
+            style={{ borderRadius: 18, paddingHorizontal: 15, paddingVertical: 10, marginRight: 8, backgroundColor: data.industry === industry ? colors.accent : colors.voidAlt }}>
             <Text style={{ color: data.industry === industry ? colors.text : colors.textDim, fontFamily: 'Ubuntu_500Medium', fontSize: 13 }}>{industry}</Text>
           </ScalePressable>)}
         </ScrollView>
