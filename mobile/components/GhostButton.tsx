@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   label: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Ubuntu_500Medium',
     fontSize: 14,
   },
 });

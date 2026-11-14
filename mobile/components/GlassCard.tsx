@@ -11,7 +11,7 @@ type GlassCardProps = {
 export function GlassCard({ children, style, intensity = 24 }: GlassCardProps) {
   const colors = useThemeColors();
   const theme = useTheme();
-  const blurTint = theme.key === 'arctic' ? 'light' : 'dark';
+  const blurTint = theme.key === 'arctic' || theme.key === 'bsquare' ? 'light' : 'dark';
 
   return (
     <View
@@ -24,7 +24,7 @@ export function GlassCard({ children, style, intensity = 24 }: GlassCardProps) {
         style,
       ]}
     >
-      <BlurView intensity={intensity} tint={blurTint} style={StyleSheet.absoluteFill} />
+      {theme.key !== 'bsquare' ? <BlurView intensity={intensity} tint={blurTint} style={StyleSheet.absoluteFill} /> : null}
       {children}
     </View>
   );

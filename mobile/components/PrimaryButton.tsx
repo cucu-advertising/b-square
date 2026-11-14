@@ -30,7 +30,7 @@ export function PrimaryButton({
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
-        <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+        <Text style={[styles.label, { color: colors.onAccent }]}>{label}</Text>
       </LinearGradient>
     </ScalePressable>
   );
@@ -38,7 +38,7 @@ export function PrimaryButton({
 
 const styles = StyleSheet.create({
   wrapper: {
-    borderRadius: 14,
+    borderRadius: 999,
     overflow: 'hidden',
   },
   fullWidth: {
@@ -48,13 +48,13 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   gradient: {
-    paddingVertical: 16,
+    paddingVertical: 18,
     paddingHorizontal: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
   label: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 16,
   },
 });

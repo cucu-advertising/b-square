@@ -89,11 +89,11 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   title: {
-    fontFamily: 'SpaceGrotesk_700Bold',
+    fontFamily: 'Ubuntu_700Bold',
     fontSize: 28,
   },
   subtitle: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Ubuntu_400Regular',
     fontSize: 14,
     marginTop: -8,
   },
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   swatchTitle: {
-    fontFamily: 'JetBrainsMono_500Medium',
+    fontFamily: 'Ubuntu_500Medium',
     fontSize: 11,
     letterSpacing: 1.6,
     marginTop: 12,
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   swatchLabel: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Ubuntu_500Medium',
     fontSize: 14,
   },
 });

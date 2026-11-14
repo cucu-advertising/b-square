@@ -29,6 +29,21 @@ export type Theme = {
 
 export const THEMES: Theme[] = [
   {
+    key: 'bsquare',
+    label: 'Bsquare Dark',
+    tag: 'Black · graphite · light azure',
+    colors: {
+      void: '#080A0D', voidAlt: '#10141A', surface: '#191D24',
+      glass: '#191D24', glassBorder: '#303743',
+      gradientStart: '#35B8FF', gradientEnd: '#259CFA',
+      accent: '#35B8FF', coral: '#EF7777',
+      holoA: '#6CCBFF', holoB: '#B4E6FF',
+      text: '#F7F9FC', textDim: '#A4AFBF', textFaint: '#727E91',
+      onAccent: '#06111E', heroA: '#111D2A', heroB: '#080A0D',
+      glow: 'rgba(53,184,255,0.17)', glowSoft: 'rgba(53,184,255,0.07)',
+    },
+  },
+  {
     key: 'signal',
     label: 'Signal',
     tag: 'Indigo · dark tech',
@@ -160,7 +175,7 @@ export const THEMES: Theme[] = [
   },
 ];
 
-export const DEFAULT_THEME_KEY = 'signal';
+export const DEFAULT_THEME_KEY = 'bsquare';
 
 export function getThemeByKey(key: string): Theme {
   return THEMES.find((t) => t.key === key) ?? THEMES[0];

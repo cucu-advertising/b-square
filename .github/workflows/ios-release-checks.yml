@@ -1,0 +1,84 @@
+name: Bsquare iOS release checks
+
+on:
+  push:
+    branches:
+      - feature/verified-admission-and-safety
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/ios-release-checks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  validate-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - name: Regenerate package lock from pinned package.json dependencies
+        working-directory: mobile
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Install exact lockfile dependencies
+        working-directory: mobile
+        run: npm ci
+      - name: Verify Expo SDK package compatibility
+        working-directory: mobile
+        run: CI=1 npx expo install --check
+      - name: TypeScript typecheck
+        working-directory: mobile
+        run: npx tsc --noEmit
+      - name: Verify existing App Store bundle ID and dark appearance
+        working-directory: mobile
+        run: |
+          node - <<'NODE'
+          const expo = require('./app.config.js')();
+          if (expo.ios?.bundleIdentifier !== 'com.cucuadvertising.bsquare') {
+            throw new Error('Unexpected iOS bundle ID; existing App Store identity must be retained');
+          }
+          if (expo.userInterfaceStyle !== 'dark') {
+            throw new Error('Dark user interface style is not enabled');
+          }
+          console.log('Verified iOS bundle ID and appearance');
+          NODE
+      - name: Commit validated release lockfile
+        run: |
+          if ! git diff --quiet -- mobile/package-lock.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add mobile/package-lock.json
+            git commit -m "chore(mobile): sync release lockfile [skip ci]"
+            git push origin HEAD:feature/verified-admission-and-safety
+          fi
+
+  review-public-urls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Diagnose mobile API and legal URLs individually
+        shell: bash
+        run: |
+          set -u
+          failed=0
+          while IFS='|' read -r label url required; do
+            [ -n "$label" ] || continue
+            status=$(curl --location --silent --show-error --max-time 55 --output /dev/null --write-out '%{http_code}' "$url") || status="000"
+            echo "$label -> HTTP $status ($url)"
+            if [ "$required" = "required" ] && [ "$status" != "200" ]; then
+              echo "::error title=Release URL unavailable::$label is HTTP $status. Verify correct deployment before App Store submission."
+              failed=1
+            fi
+          done <<'URLS'
+          Node Express diagnostic|https://bsquare-backend.onrender.com/api/health|informational
+          Mobile FastAPI production backend|https://api.bsquare.club/api/v1/health|required
+          Privacy policy|https://bsquare.club/privacy-policy|required
+          Account deletion help|https://bsquare.club/delete-account/|required
+          URLS
+          exit "$failed"
