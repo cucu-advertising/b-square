@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     linkedin_redirect_uri: str = ""
     linkedin_app_redirect_scheme: str = "bsquare"
     linkedin_web_redirect_uri: str = ""
+    bsquare_admin_emails: str = ""
     resend_api_key: str = ""
     resend_from_email: str = "B Square <onboarding@resend.dev>"
     apple_bundle_id: str = "com.cucuadvertising.bsquare"
