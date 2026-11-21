@@ -14,6 +14,7 @@ from app.core.config import get_settings
 from app.core.exceptions import AppError
 from app.db.connection import get_db
 from app.services.email_service import send_signup_code_email
+from app.services.admission import is_work_email
 
 router = APIRouter(prefix="/auth/signup-email", tags=["auth"])
 CODE_TTL = timedelta(minutes=5)
@@ -38,6 +39,8 @@ def digest(email: str, purpose: str, value: str) -> str:
 @router.post("/request")
 async def send_signup_email_code(payload: SignupEmailRequest, request: Request) -> dict[str, str]:
     email = str(payload.email).strip().lower()
+    if not is_work_email(email):
+        raise AppError("Use your company email for work-email verification", 422)
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     response = {"message": "If this email can be used, a verification code will be sent."}
     ip = request.client.host if request.client else "unknown"
@@ -77,6 +80,8 @@ async def send_signup_email_code(payload: SignupEmailRequest, request: Request) 
 @router.post("/verify")
 async def verify_signup_email_code(payload: SignupEmailVerify) -> dict[str, str]:
     email = str(payload.email).strip().lower()
+    if not is_work_email(email):
+        raise AppError("Company email is required", 422)
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     collection = get_db().signup_email_codes
     record = await collection.find_one_and_update(

@@ -33,8 +33,8 @@ async def register(
     payload: RegisterRequest,
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> dict:
-    user, tokens = await auth_service.register(payload)
-    return {"user": user.model_dump(by_alias=True), **tokens.model_dump(by_alias=True)}
+    # Old unrestricted endpoint cannot bypass email OTP and founder review.
+    raise AppError("Verify your company email with a signup code first", 403)
 
 
 class VerifiedRegisterRequest(RegisterRequest):
@@ -55,8 +55,8 @@ async def register_verified(
     })
     if ticket is None:
         raise AppError("Please verify your email again to continue registration", 401)
-    user, tokens = await auth_service.register(RegisterRequest.model_validate(payload.model_dump(by_alias=True)))
-    return {"user": user.model_dump(by_alias=True), **tokens.model_dump(by_alias=True)}
+    user, _ = await auth_service.register(RegisterRequest.model_validate(payload.model_dump(by_alias=True)))
+    return {"status": "pending", "message": "Email verified. Founder eligibility is awaiting review."}
 
 
 @router.post("/login")

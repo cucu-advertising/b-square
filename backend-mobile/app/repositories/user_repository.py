@@ -47,7 +47,12 @@ class UserRepository:
                 if oid not in excluded:
                     excluded.append(oid)
 
-        query: dict[str, Any] = {}
+        query: dict[str, Any] = {
+            "membershipStatus": {"$nin": ["pending", "rejected", "suspended"]},
+            "verificationStatus": {"$nin": ["pending", "rejected", "suspended"]},
+            "isActive": {"$ne": False},
+            "isBlocked": {"$ne": True},
+        }
         if excluded:
             query["_id"] = {"$nin": excluded}
         # Exclude anyone the viewer has blocked, or who has blocked the viewer.

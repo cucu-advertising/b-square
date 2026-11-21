@@ -12,6 +12,7 @@ from app.core.security import (
     verify_password,
 )
 from app.models.user import new_user_document
+from app.services.admission import is_eligible_role, is_work_email
 from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.repositories.user_repository import UserRepository
 from app.services import email_service
@@ -72,13 +73,22 @@ class AuthService:
         self.refresh_tokens = refresh_tokens
 
     async def _issue_tokens(self, user: dict[str, Any]) -> TokenResponse:
+        if user.get("membershipStatus") in ("pending", "rejected", "suspended") or user.get("verificationStatus") in ("pending", "rejected", "suspended"):
+            raise AppError("Membership must be approved before sign-in", 403)
+        if user.get("isActive") is False or user.get("isBlocked") is True:
+            raise AppError("Account unavailable", 403)
         user_id = _user_id(user)
         access_token = create_access_token(user_id)
         refresh_token, expires_at = create_refresh_token(user_id)
         await self.refresh_tokens.save(user_id, refresh_token, expires_at.replace(tzinfo=None))
         return TokenResponse(accessToken=access_token, refreshToken=refresh_token)
 
-    async def register(self, payload: RegisterRequest) -> tuple[UserResponse, TokenResponse]:
+    async def register(self, payload: RegisterRequest, *, issue_tokens: bool = False) -> tuple[UserResponse, TokenResponse | None]:
+        # Registration is an application, never an active membership.
+        if not is_eligible_role(payload.role_title):
+            raise AppError("Founder or business-owner role required", 422)
+        if payload.verification_type == "work_email" and not is_work_email(str(payload.email)):
+            raise AppError("A verified company email is required", 422)
         email = payload.email.lower()
         existing = await self.users.find_by_email(email)
         if existing:
@@ -119,6 +129,11 @@ class AuthService:
             locationEnabled=payload.location_enabled,
             founderName=f"{first_name} {last_name}".strip(),
             companyName=payload.business_name.strip(),
+            role=payload.role_title.strip(),
+            roleTitle=payload.role_title.strip(),
+            membershipStatus="pending",
+            verificationStatus="pending",
+            emailVerifiedAt=datetime.utcnow(),
         )
 
         try:
@@ -129,8 +144,8 @@ class AuthService:
                 raise AppError("This DIN is already registered", 409) from exc
             raise AppError("An account with this email already exists", 409) from exc
 
-        tokens = await self._issue_tokens(user)
-        return serialize_user(user), tokens
+        # Do not issue networking JWTs to new applicants.
+        return serialize_user(user), None
 
     async def linkedin_auth(
         self, claims: dict[str, Any]
@@ -312,7 +327,7 @@ class AuthService:
         user = await self.users.find_by_email(payload.email.lower())
         if not user:
             raise AppError("This email doesn't exist", 401)
-        if not verify_password(payload.password, user["passwordHash"]):
+        if not user.get("passwordHash") or not verify_password(payload.password, user["passwordHash"]):
             raise AppError("The password is incorrect", 401)
 
         tokens = await self._issue_tokens(user)
