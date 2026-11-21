@@ -53,7 +53,7 @@ export default function EmailSignIn() {
         <View style={{ height: 7, width: 7, backgroundColor: colors.accent, borderRadius: 7 }} />
         <Text style={{ fontFamily: 'Ubuntu_700Bold', color: colors.accent, fontSize: 11, letterSpacing: 2.2 }}>B SQUARE  /  PRIVATE NETWORK</Text>
       </View>
-      <Text style={{ fontFamily: 'Ubuntu_700Bold', color: colors.text, fontSize: 38, lineHeight: 44 }}>Welcome back.</Text>
+      <Text style={{ fontFamily: 'Ubuntu_700Bold', color: colors.text, fontSize: 42, lineHeight: 49 }}>Welcome back.</Text>
       <Text style={{ fontFamily: 'Ubuntu_400Regular', color: colors.textDim, fontSize: 16, lineHeight: 25, marginTop: 14, marginBottom: 31 }}>
         Your next connection is one verification away. Enter your registered email and we’ll send a secure sign-in code.
       </Text>
@@ -63,12 +63,12 @@ export default function EmailSignIn() {
         value={email} onChangeText={v => { setEmail(v); setSent(false); setCode(''); setInfo(''); }}
         autoCapitalize="none" autoCorrect={false} autoComplete="email" textContentType="emailAddress"
         keyboardType="email-address" accessibilityLabel="Registered email"
-        placeholder="you@company.com"
+        placeholder="you@company.com" placeholderTextColor={colors.textFaint}
         style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 14, padding: 17, color: colors.text, fontFamily: 'Ubuntu_400Regular', fontSize: 16, marginBottom: 18 }}
       />
       {!sent ? <PrimaryButton label={busy ? 'Sending...' : 'Send email code'} disabled={!validEmail || busy} onPress={requestCode} /> : <>
         <Text style={{ fontFamily: 'Ubuntu_500Medium', color: colors.textDim, marginTop: 22, marginBottom: 9 }}>6-digit email code</Text>
-        <TextInput value={code} onChangeText={v => setCode(v.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={6} accessibilityLabel="Email verification code" placeholder="000000" style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 15, padding: 18, color: colors.text, fontFamily: 'Ubuntu_700Bold', fontSize: 25, letterSpacing: 7, textAlign: 'center', marginBottom: 18 }} />
+        <TextInput value={code} onChangeText={v => setCode(v.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={6} accessibilityLabel="Email verification code" placeholder="000000" placeholderTextColor={colors.textFaint} style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 15, padding: 18, color: colors.text, fontFamily: 'Ubuntu_700Bold', fontSize: 25, letterSpacing: 7, textAlign: 'center', marginBottom: 18 }} />
         <PrimaryButton label={busy ? 'Verifying...' : 'Verify and sign in'} disabled={busy || code.length !== 6} onPress={verify} />
         <ScalePressable accessibilityRole="button" onPress={requestCode} disabled={busy} style={{ paddingVertical: 21, alignItems: 'center' }}>
           <Text style={{ color: colors.accent, fontFamily: 'Ubuntu_500Medium' }}>Resend code (available after 60 seconds)</Text>
