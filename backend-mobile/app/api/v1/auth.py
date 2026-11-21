@@ -149,8 +149,7 @@ async def account_deletion_info() -> HTMLResponse:
 
 @router.get("/linkedin/authorize-url")
 async def linkedin_authorize_url() -> dict:
-    state = secrets.token_urlsafe(16)
-    return {"url": linkedin_oauth.build_authorization_url(state), "state": state}
+    raise AppError("Use the secure /api/v1/auth/linkedin/start endpoint", 410)
 
 
 @router.get("/linkedin/callback")
@@ -160,13 +159,7 @@ async def linkedin_callback(code: str = "", state: str = "", error: str = "") ->
     We hand off to the app via its custom URL scheme, carrying the code
     (or error) along so the app can complete the exchange itself.
     """
-    settings = get_settings()
-    scheme = settings.linkedin_app_redirect_scheme
-    if error:
-        return RedirectResponse(url=f"{scheme}://linkedin-callback?error={error}")
-    return RedirectResponse(
-        url=f"{scheme}://linkedin-callback?code={code}&state={state}"
-    )
+    raise AppError("Use the secure /api/v1/auth/linkedin/callback-v2 endpoint", 410)
 
 
 @router.post("/linkedin/exchange")
@@ -174,13 +167,7 @@ async def linkedin_exchange(
     payload: LinkedInExchangeRequest,
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> dict:
-    claims = await linkedin_oauth.exchange_code_for_claims(payload.code)
-    user, tokens, is_new_user = await auth_service.linkedin_auth(claims)
-    return {
-        "user": user.model_dump(by_alias=True),
-        "isNewUser": is_new_user,
-        **tokens.model_dump(by_alias=True),
-    }
+    raise AppError("Use the secure one-time LinkedIn verification flow", 410)
 
 
 @router.post("/apple/exchange")
