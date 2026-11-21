@@ -22,6 +22,18 @@ export type Member = {
 };
 export type RequestItem = Member & { request_id: string };
 export type Conversation = { other_id: string; other_name: string; other_industry?: string; last_message?: string; last_message_at?: string; unread_count?: number };
+export type AdmissionApplicant = {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  businessName?: string;
+  roleTitle?: string;
+  verificationType?: string;
+  linkedinUrl?: string | null;
+  emailVerifiedAt?: string;
+  createdAt?: string;
+};
 export type ChatMessage = { id: string; sender_id: string; receiver_id: string; content: string; is_system?: boolean; created_at: string };
 
 const TOKEN_KEY = 'bsquare_access_token';
@@ -108,6 +120,9 @@ export const api = {
   linkFirebasePhone: (idToken: string) => request<{ linked: boolean }>('/firebase-phone/link', { method: 'POST', body: { idToken }, retry: false }),
   loginWithFirebasePhone: async (idToken: string) => { const r = await request<{ accessToken: string; refreshToken: string; user: Member }>('/firebase-phone/session', { method: 'POST', body: { idToken }, token: null, retry: false }); return { ...r, user: normalizeMember(r.user) }; },
   login: async (email: string, password: string) => { const r = await request<{ accessToken: string; refreshToken: string; user: Member }>('/auth/login', { method: 'POST', body: { email, password }, token: null, retry: false }); return { ...r, user: normalizeMember(r.user) }; },
+  reviewerAccess: () => request<{ canReview: boolean }>('/admin/admission/me', { retry: false }),
+  pendingAdmissions: () => request<{ applications: AdmissionApplicant[] }>('/admin/admission/pending', { retry: false }),
+  decideAdmission: (id: string, decision: 'approve' | 'reject', evidenceNote: string) => request<{ status: string }>(`/admin/admission/${encodeURIComponent(id)}/${decision}`, { method: 'POST', body: { evidenceNote }, retry: false }),
   startLinkedIn: (platform: 'app' | 'web') => request<{url: string}>(`/auth/linkedin/start?platform=${platform}`, {token: null, retry: false}),
   completeLinkedIn: (ticket: string) => request<any>('/auth/linkedin/complete', {method: 'POST', body: {ticket}, token: null, retry: false}),
   applyLinkedIn: (fields: Record<string, unknown>) => request<{status: string; message: string}>('/auth/linkedin/apply', {method: 'POST', body: fields, token: null, retry: false}),

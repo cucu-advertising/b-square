@@ -34,6 +34,12 @@ async def _admin_id(user_id: str) -> str:
     return user_id
 
 
+@router.get("/me")
+async def reviewer_access(user_id: Annotated[str, Depends(get_current_user_id)]) -> dict:
+    await _admin_id(user_id)
+    return {"canReview": True}
+
+
 @router.get("/pending")
 async def pending_members(user_id: Annotated[str, Depends(get_current_user_id)]) -> dict:
     await _admin_id(user_id)
