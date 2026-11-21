@@ -1,15 +1,24 @@
-import { useThemeColors } from '../lib/theme';
 import { useEffect } from 'react';
-import { ActivityIndicator, Image, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { BrandMark } from '../components/BrandUI';
 import { useSession } from '../lib/session';
+import { useThemeColors } from '../lib/theme';
+
 export default function LaunchScreen() {
-  const colors = useThemeColors();
+  const c = useThemeColors();
   const router = useRouter();
   const hydrate = useSession(s => s.hydrate);
   const user = useSession(s => s.user);
   const loading = useSession(s => s.loading);
-  useEffect(() => { hydrate(); }, [hydrate]);
-  useEffect(() => { if (!loading) router.replace(user ? '/(tabs)/nearby' : '/login'); }, [loading, user, router]);
-  return <View style={{ flex: 1, backgroundColor: colors.void, alignItems: 'center', justifyContent: 'center', gap: 24 }}><Image source={require('../assets/brand-logo.png')} resizeMode="contain" accessibilityLabel="B Square" style={{ width: 220, height: 220 }} /><Text style={{ fontFamily: 'Ubuntu_400Regular', color: colors.textDim, fontSize: 15 }}>Your next connection starts here.</Text><ActivityIndicator color="#385A53" /></View>;
+  useEffect(() => { void hydrate(); }, [hydrate]);
+  useEffect(() => {
+    if (!loading) router.replace(user ? '/(tabs)/nearby' : '/onboarding');
+  }, [loading, user, router]);
+  return <View style={{ flex: 1, backgroundColor: c.void, justifyContent: 'center', alignItems: 'center', gap: 18 }}>
+    <BrandMark size={93} />
+    <Text style={{ color: c.text, fontFamily: 'Ubuntu_700Bold', fontSize: 28 }}>Bsquare</Text>
+    <Text style={{ color: c.textDim, fontFamily: 'Ubuntu_400Regular', fontSize: 13 }}>The right people. For you.</Text>
+    <ActivityIndicator color={c.accent} style={{ marginTop: 18 }} />
+  </View>;
 }

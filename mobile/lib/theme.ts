@@ -5,201 +5,67 @@ export type Theme = {
   label: string;
   tag: string;
   colors: {
-    void: string;
-    voidAlt: string;
-    surface: string;
-    glass: string;
-    glassBorder: string;
-    gradientStart: string;
-    gradientEnd: string;
-    accent: string;
-    coral: string;
-    holoA: string;
-    holoB: string;
-    text: string;
-    textDim: string;
-    textFaint: string;
-    onAccent: string;
-    heroA: string;
-    heroB: string;
-    glow: string;
-    glowSoft: string;
+    void: string; voidAlt: string; surface: string; glass: string;
+    glassBorder: string; gradientStart: string; gradientEnd: string;
+    accent: string; coral: string; holoA: string; holoB: string;
+    text: string; textDim: string; textFaint: string; onAccent: string;
+    heroA: string; heroB: string; glow: string; glowSoft: string;
   };
 };
 
-export const THEMES: Theme[] = [
-  {
-    key: 'bsquare',
-    label: 'Bsquare Dark',
-    tag: 'Black · graphite · light azure',
-    colors: {
-      void: '#080A0D', voidAlt: '#10141A', surface: '#191D24',
-      glass: '#191D24', glassBorder: '#303743',
-      gradientStart: '#35B8FF', gradientEnd: '#259CFA',
-      accent: '#35B8FF', coral: '#EF7777',
-      holoA: '#6CCBFF', holoB: '#B4E6FF',
-      text: '#F7F9FC', textDim: '#A4AFBF', textFaint: '#727E91',
-      onAccent: '#06111E', heroA: '#111D2A', heroB: '#080A0D',
-      glow: 'rgba(53,184,255,0.17)', glowSoft: 'rgba(53,184,255,0.07)',
-    },
+// Palette transcribed from the user-approved 21-screen Opal-inspired Bsquare pack.
+// The application keeps one intentional identity instead of a user-selectable theme gallery.
+export const BSQUARE = {
+  blue: '#0B2980',
+  deepBlue: '#061B53',
+  blueAlt: '#09236D',
+  card: '#123586',
+  field: '#081F5B',
+  lime: '#DFFF73',
+  white: '#FAFBFF',
+  muted: '#B7C8EC',
+  outline: '#33549F',
+} as const;
+
+export const THEMES: Theme[] = [{
+  key: 'bsquare',
+  label: 'B Square · Royal Blue',
+  tag: 'Royal blue · neon lime · Ubuntu',
+  colors: {
+    void: BSQUARE.blue,
+    voidAlt: BSQUARE.blueAlt,
+    surface: BSQUARE.card,
+    glass: BSQUARE.card,
+    glassBorder: BSQUARE.outline,
+    gradientStart: BSQUARE.lime,
+    gradientEnd: BSQUARE.lime,
+    accent: BSQUARE.lime,
+    coral: '#FF969A',
+    holoA: '#9BC4FF',
+    holoB: BSQUARE.lime,
+    text: BSQUARE.white,
+    textDim: BSQUARE.muted,
+    textFaint: '#92ADE8',
+    onAccent: BSQUARE.deepBlue,
+    heroA: BSQUARE.card,
+    heroB: BSQUARE.blueAlt,
+    glow: 'rgba(223,255,115,0.17)',
+    glowSoft: 'rgba(223,255,115,0.08)',
   },
-  {
-    key: 'signal',
-    label: 'Signal',
-    tag: 'Indigo · dark tech',
-    colors: {
-      void: '#0A0A10',
-      voidAlt: '#111119',
-      surface: '#16161F',
-      glass: 'rgba(255,255,255,0.045)',
-      glassBorder: 'rgba(255,255,255,0.09)',
-      gradientStart: '#7B5CFA',
-      gradientEnd: '#4F8CFF',
-      accent: '#C8FF4D',
-      coral: '#FF6A5C',
-      holoA: '#B9C7FF',
-      holoB: '#F3C7FF',
-      text: '#F3F2F8',
-      textDim: '#9A96AE',
-      textFaint: '#5F5C72',
-      onAccent: '#0A0A10',
-      heroA: '#1B1730',
-      heroB: '#0F1220',
-      glow: 'rgba(123,92,250,0.35)',
-      glowSoft: 'rgba(123,92,250,0.18)',
-    },
-  },
-  {
-    key: 'arctic',
-    label: 'Arctic',
-    tag: 'Blue · clean & light',
-    colors: {
-      void: '#F5F7FB',
-      voidAlt: '#EDF1F7',
-      surface: '#FFFFFF',
-      glass: 'rgba(15,23,42,0.035)',
-      glassBorder: 'rgba(15,23,42,0.09)',
-      gradientStart: '#2563EB',
-      gradientEnd: '#7C3AED',
-      accent: '#059669',
-      coral: '#DC2626',
-      holoA: '#93C5FD',
-      holoB: '#C4B5FD',
-      text: '#0F172A',
-      textDim: '#475569',
-      textFaint: '#94A3B8',
-      onAccent: '#FFFFFF',
-      heroA: '#E8EEFC',
-      heroB: '#F5F3FF',
-      glow: 'rgba(37,99,235,0.18)',
-      glowSoft: 'rgba(37,99,235,0.12)',
-    },
-  },
-  {
-    key: 'ledger',
-    label: 'Ledger',
-    tag: 'Gold · quiet luxury',
-    colors: {
-      void: '#11141C',
-      voidAlt: '#171B24',
-      surface: '#1B1F29',
-      glass: 'rgba(255,255,255,0.04)',
-      glassBorder: 'rgba(255,255,255,0.08)',
-      gradientStart: '#C9A227',
-      gradientEnd: '#E8CD82',
-      accent: '#2F9E76',
-      coral: '#B4483A',
-      holoA: '#E8CD82',
-      holoB: '#F3E3B0',
-      text: '#F3F1EA',
-      textDim: '#A8A296',
-      textFaint: '#6B6659',
-      onAccent: '#0B120E',
-      heroA: '#241F14',
-      heroB: '#161310',
-      glow: 'rgba(201,162,39,0.3)',
-      glowSoft: 'rgba(201,162,39,0.16)',
-    },
-  },
-  {
-    key: 'sunset',
-    label: 'Sunset',
-    tag: 'Coral · warm night',
-    colors: {
-      void: '#160F1A',
-      voidAlt: '#1D1420',
-      surface: '#221828',
-      glass: 'rgba(255,255,255,0.045)',
-      glassBorder: 'rgba(255,255,255,0.09)',
-      gradientStart: '#FF6B6B',
-      gradientEnd: '#FFA36B',
-      accent: '#3DDC97',
-      coral: '#FF4D8D',
-      holoA: '#FFB199',
-      holoB: '#FFD9A0',
-      text: '#F7EFF2',
-      textDim: '#C2A9B4',
-      textFaint: '#83687A',
-      onAccent: '#0B140E',
-      heroA: '#2A1830',
-      heroB: '#170F1C',
-      glow: 'rgba(255,107,107,0.3)',
-      glowSoft: 'rgba(255,107,107,0.16)',
-    },
-  },
-  {
-    key: 'mono',
-    label: 'Mono',
-    tag: 'Blue · monochrome',
-    colors: {
-      void: '#000000',
-      voidAlt: '#0A0A0A',
-      surface: '#111111',
-      glass: 'rgba(255,255,255,0.05)',
-      glassBorder: 'rgba(255,255,255,0.1)',
-      gradientStart: '#3B82F6',
-      gradientEnd: '#60A5FA',
-      accent: '#3B82F6',
-      coral: '#F43F5E',
-      holoA: '#93C5FD',
-      holoB: '#E4E4E7',
-      text: '#FFFFFF',
-      textDim: '#A1A1AA',
-      textFaint: '#52525B',
-      onAccent: '#FFFFFF',
-      heroA: '#141414',
-      heroB: '#0A0A0A',
-      glow: 'rgba(59,130,246,0.3)',
-      glowSoft: 'rgba(59,130,246,0.16)',
-    },
-  },
-];
+}];
 
 export const DEFAULT_THEME_KEY = 'bsquare';
-
-export function getThemeByKey(key: string): Theme {
-  return THEMES.find((t) => t.key === key) ?? THEMES[0];
-}
+export function getThemeByKey(_key: string): Theme { return THEMES[0]; }
 
 type ThemeState = {
   activeThemeKey: string;
   theme: Theme;
   setTheme: (key: string) => void;
 };
-
 export const useThemeStore = create<ThemeState>((set) => ({
   activeThemeKey: DEFAULT_THEME_KEY,
-  theme: getThemeByKey(DEFAULT_THEME_KEY),
-  setTheme: (key: string) => {
-    const theme = getThemeByKey(key);
-    set({ activeThemeKey: key, theme });
-  },
+  theme: THEMES[0],
+  setTheme: (_key) => set({ activeThemeKey: DEFAULT_THEME_KEY, theme: THEMES[0] }),
 }));
-
-export function useTheme() {
-  return useThemeStore((s) => s.theme);
-}
-
-export function useThemeColors() {
-  return useThemeStore((s) => s.theme.colors);
-}
+export function useTheme() { return useThemeStore((s) => s.theme); }
+export function useThemeColors() { return useThemeStore((s) => s.theme.colors); }
