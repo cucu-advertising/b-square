@@ -11,6 +11,8 @@ export type Member = {
   city?: string | null;
   distance_km?: number | null;
   verification_status?: string;
+  membership_status?: string;
+  profilePhoto?: string | null;
   connection_status?: string;
   request_id?: string | null;
   role_title?: string | null;
@@ -26,7 +28,7 @@ const TOKEN_KEY = 'bsquare_access_token';
 const REFRESH_KEY = 'bsquare_refresh_token';
 const baseURL = (process.env.EXPO_PUBLIC_BSQUARE_API_URL || '').replace(/\/+$/, '');
 function normalizeMember(value: any): Member {
-  return { ...value, name: value.name || [value.firstName, value.lastName].filter(Boolean).join(' '), company_name: value.companyName || value.businessName || value.company_name || null, verification_status: value.verificationStatus || value.verification_status, verification_type: value.verificationType || value.verification_type };
+  return { ...value, name: value.name || [value.firstName, value.lastName].filter(Boolean).join(' '), company_name: value.companyName || value.businessName || value.company_name || null, verification_status: value.verificationStatus || value.verification_status, membership_status: value.membershipStatus || value.membership_status, verification_type: value.verificationType || value.verification_type };
 }
 function normalizeRequest(value: any): RequestItem {
   return { ...normalizeMember(value.user || {}), request_id: value.id, status: value.status } as RequestItem;

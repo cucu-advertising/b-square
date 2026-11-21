@@ -40,6 +40,8 @@ def serialize_user(user: dict[str, Any]) -> UserResponse:
         companyLogo=user.get("companyLogo"),
         businessGallery=user.get("businessGallery", []),
         verificationType=user.get("verificationType", "din"),
+        verificationStatus=user.get("verificationStatus", "unverified"),
+        membershipStatus=user.get("membershipStatus", "approved"),
         dinNumber=user.get("dinNumber"),
         dinDirectorName=user.get("dinDirectorName"),
         linkedinUrl=user.get("linkedinUrl"),

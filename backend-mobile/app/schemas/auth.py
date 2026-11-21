@@ -271,6 +271,8 @@ class UserResponse(BaseModel):
     company_logo: str | None = Field(default=None, alias="companyLogo")
     business_gallery: list[str] = Field(default_factory=list, alias="businessGallery")
     verification_type: str = Field(alias="verificationType")
+    verification_status: str = Field(default="unverified", alias="verificationStatus")
+    membership_status: str = Field(default="approved", alias="membershipStatus")
     din_number: str | None = Field(default=None, alias="dinNumber")
     din_director_name: str | None = Field(default=None, alias="dinDirectorName")
     linkedin_url: str | None = Field(default=None, alias="linkedinUrl")

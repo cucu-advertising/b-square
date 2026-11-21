@@ -47,6 +47,8 @@ async def register_verified(
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> dict:
     """A fresh, single-use verification ticket must match the registration email."""
+    if payload.verification_type != "work_email":
+        raise AppError("Company email OTP can only register a work-email applicant", 422)
     email = str(payload.email).strip().lower()
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     token_digest = signup_digest(email, "ticket", payload.verification_token)
