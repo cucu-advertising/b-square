@@ -1,19 +1,20 @@
 import { useCallback, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Check, X } from 'lucide-react-native';
-import { api, RequestItem } from '../../lib/api';
+import { Check, X, ArrowUpRight } from 'lucide-react-native';
+import { api, RequestItem, Member } from '../../lib/api';
 import { useThemeColors } from '../../lib/theme';
 import { Avatar, Eyebrow } from '../../components/BrandUI';
 import { ScalePressable } from '../../components/AnimatedUI';
 import { LoadingState, MessageState, SectionHeading } from '../../components/ScreenStates';
 
-type Panel = 'Received' | 'Sent';
+type Panel = 'Connections' | 'Received' | 'Sent';
 
 export default function RequestsScreen() {
   const c = useThemeColors();
   const router = useRouter();
-  const [panel, setPanel] = useState<Panel>('Received');
+  const [panel, setPanel] = useState<Panel>('Connections');
+  const [connections, setConnections] = useState<Member[]>([]);
   const [received, setReceived] = useState<RequestItem[]>([]);
   const [sent, setSent] = useState<RequestItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +23,8 @@ export default function RequestsScreen() {
   const refresh = useCallback(async () => {
     setLoading(true); setError('');
     try {
-      const [incoming, outgoing] = await Promise.all([api.received(), api.sent()]);
+      const [linked, incoming, outgoing] = await Promise.all([api.connections(), api.received(), api.sent()]);
+      setConnections(linked.users);
       setReceived(incoming.requests);
       setSent(outgoing.requests);
     } catch (e) { setError(e instanceof Error ? e.message : 'Unable to load your network'); }
@@ -41,15 +43,27 @@ export default function RequestsScreen() {
   return <View style={{ flex: 1, backgroundColor: c.void }}>
     <SectionHeading title="Your network." subtitle="Build connections that go somewhere." />
     <View style={{ flexDirection: 'row', paddingHorizontal: 23, gap: 10, paddingBottom: 18 }}>
-      {(['Received', 'Sent'] as Panel[]).map(tab => <ScalePressable key={tab} onPress={() => setPanel(tab)}
-        style={{ paddingVertical: 11, paddingHorizontal: 20, borderRadius: 30, borderWidth: 1, borderColor: c.glassBorder, backgroundColor: panel === tab ? c.accent : c.surface }}>
-        <Text style={{ color: panel === tab ? c.onAccent : c.textDim, fontFamily: 'Ubuntu_700Bold', fontSize: 12 }}>{tab}{tab === 'Received' && received.length ? ' · ' + received.length : ''}</Text>
+      {(['Connections', 'Received', 'Sent'] as Panel[]).map(tab => <ScalePressable key={tab} onPress={() => setPanel(tab)}
+        style={{ paddingVertical: 11, paddingHorizontal: 14, borderRadius: 30, borderWidth: 1, borderColor: c.glassBorder, backgroundColor: panel === tab ? c.accent : c.surface }}>
+        <Text style={{ color: panel === tab ? c.onAccent : c.textDim, fontFamily: 'Ubuntu_700Bold', fontSize: 11 }}>{tab}{tab === 'Received' && received.length ? ' · ' + received.length : ''}</Text>
       </ScalePressable>)}
     </View>
-    {loading ? <LoadingState /> : error ? <MessageState message={error} retry={refresh} /> : !shown.length ?
+    {loading ? <LoadingState /> : error ? <MessageState message={error} retry={refresh} /> : panel === 'Connections' && connections.length ? (
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 45 }}>
+        {connections.map(member => <ScalePressable key={member.id} onPress={() => router.push(`/profile/${member.id}`)}
+          style={{ padding: 18, borderRadius: 19, backgroundColor: c.surface, borderWidth: 1, borderColor: c.glassBorder, flexDirection: 'row', alignItems: 'center', gap: 13 }}>
+          <Avatar name={member.name} size={57} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: c.text, fontFamily: 'Ubuntu_700Bold', fontSize: 17 }}>{member.name}</Text>
+            <Text numberOfLines={2} style={{ color: c.textDim, fontFamily: 'Ubuntu_400Regular', fontSize: 12, marginTop: 5 }}>{member.company_name || member.headline || member.city || 'Connected Bsquare member'}</Text>
+          </View>
+          <ArrowUpRight color={c.accent} size={19} />
+        </ScalePressable>)}
+      </ScrollView>
+    ) : panel === 'Connections' || !shown.length ?
       <View style={{ flex: 1, paddingHorizontal: 28, justifyContent: 'center', alignItems: 'center' }}>
         <Text style={{ fontFamily: 'Ubuntu_700Bold', color: c.text, fontSize: 27, textAlign: 'center' }}>Every connection starts with a hello.</Text>
-        <Text style={{ color: c.textDim, fontFamily: 'Ubuntu_400Regular', fontSize: 15, lineHeight: 24, textAlign: 'center', marginTop: 17 }}>{panel === 'Received' ? 'New connection requests will appear here.' : 'Requests you send will appear here.'}</Text>
+        <Text style={{ color: c.textDim, fontFamily: 'Ubuntu_400Regular', fontSize: 15, lineHeight: 24, textAlign: 'center', marginTop: 17 }}>{panel === 'Connections' ? 'Your accepted connections will appear here.' : panel === 'Received' ? 'New connection requests will appear here.' : 'Requests you send will appear here.'}</Text>
         <ScalePressable onPress={() => router.replace('/(tabs)/nearby')} style={{ marginTop: 25, borderWidth: 1, borderColor: c.accent, paddingVertical: 13, paddingHorizontal: 21, borderRadius: 12 }}>
           <Text style={{ fontFamily: 'Ubuntu_700Bold', color: c.accent }}>Discover members</Text>
         </ScalePressable>

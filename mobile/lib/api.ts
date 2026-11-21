@@ -112,6 +112,7 @@ export const api = {
   nearby: async () => ({ users: (await request<Member[]>('/users/discover')).map(normalizeMember) }),
   member: async (id: string) => ({ user: normalizeMember(await request<Member>(`/users/${encodeURIComponent(id)}`)) }),
   connect: (id: string) => request(`/connections/request/${encodeURIComponent(id)}`, { method: 'POST' }),
+  connections: async () => ({ users: (await request<Member[]>('/connections')).map(v => normalizeMember({ ...v, city: v.city || (v as any).location, headline: v.headline || (v as any).roleCompany })) }),
   received: async () => ({ requests: (await request<any[]>('/connections/requests/received')).map(normalizeRequest) }),
   sent: async () => ({ requests: (await request<any[]>('/connections/requests/sent')).map(normalizeRequest) }),
   accept: (id: string) => request(`/connections/request/${encodeURIComponent(id)}/accept`, { method: 'PUT' }),
