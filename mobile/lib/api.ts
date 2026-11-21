@@ -92,7 +92,16 @@ async function request<T>(path: string, options: { method?: string; body?: unkno
       } catch { await clearSession(); }
     }
   }
-  if (!res.ok) throw new ApiError(res.status, typeof data.error === 'string' ? data.error : 'Request failed', data.code);
+  if (!res.ok) {
+    // A 404 from an older backend commonly means the new LinkedIn route
+    // has not yet been deployed; don't mislead users with "Request failed".
+    const message = res.status === 404 && path.startsWith('/auth/linkedin/')
+      ? 'LinkedIn verification is not installed on the B Square server yet.'
+      : typeof data.error === 'string' ? data.error
+      : typeof data.message === 'string' ? data.message
+      : `Request failed (HTTP ${res.status})`;
+    throw new ApiError(res.status, message, data.code);
+  }
   return data as T;
 }
 export const api = {
