@@ -1,0 +1,53 @@
+name: Bsquare Founder Admission Checks
+
+on:
+  push:
+    branches:
+      - feature/founder-admission-linkedin-work-email
+  pull_request:
+    paths:
+      - 'backend-mobile/**'
+      - 'mobile/**'
+      - '.github/workflows/founder-admission-checks.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - run: npx expo install --check
+      - run: npx tsc --noEmit
+      - run: npx expo export --platform web --output-dir /tmp/bsquare-admission-web
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m compileall -q backend-mobile/app
+      - name: Founder eligibility pure tests
+        run: |
+          PYTHONPATH=backend-mobile python - <<'PY'
+          from app.services.admission import is_work_email, is_eligible_role
+          assert is_work_email('ceo@company.in')
+          assert not is_work_email('person@gmail.com')
+          assert not is_work_email('person@outlook.com')
+          for role in ['Founder', 'Co-founder', 'Managing Director', 'Business Owner']:
+              assert is_eligible_role(role)
+          for role in ['Student', 'Manager', 'Software Engineer', 'CEO']:
+              assert not is_eligible_role(role)
+          print("Admission eligibility tests passed")
+          PY
