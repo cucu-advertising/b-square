@@ -176,4 +176,4 @@ async def linkedin_apply(
         await auth_service.users.create(user)
     except DuplicateKeyError as exc:
         raise AppError("Account already exists", 409) from exc
-    return {"status": "pending", "message": "LinkedIn account verified. Membership awaits founder review."}
+    return {"status": "pending", "message": "LinkedIn sign-in completed. Membership awaits founder review."}

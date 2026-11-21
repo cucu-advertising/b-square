@@ -77,7 +77,7 @@ export default function RegisterScreen() {
         {step === 'email' ? 'Enter your work email. We will send you a six-digit verification code.' : step === 'code' ? 'Enter the 6-digit code we sent to your email. It expires in 5 minutes.' : step === 'profile' ? 'Your email is verified. Complete your application using the details below.' : 'Your email is verified. Your founder application is awaiting review.'}
       </Text>
       {step === 'email' ? <>
-        <LinkedInButton label="Verify with LinkedIn instead" />
+        <LinkedInButton label="Continue with LinkedIn" />
         <Text style={{ color: colors.textDim, fontFamily: 'Ubuntu_500Medium', textAlign: 'center', marginVertical: 22, fontSize: 12 }}>OR USE YOUR WORK EMAIL</Text>
         <Text style={{ color: colors.textDim, fontFamily: 'Ubuntu_500Medium', marginBottom: 9 }}>Work email address</Text>
         <TextInput accessibilityLabel="New member email address" value={email}
