@@ -60,7 +60,7 @@ export default function RegisterScreen() {
       <TextInput accessibilityLabel={label} value={data[key]}
         onChangeText={value => setData(old => ({ ...old, [key]: value }))}
         autoCorrect={false} onFocus={reveal} placeholder={label}
-        style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 14, padding: 16, color: colors.text, fontSize: 16, fontFamily: 'Ubuntu_400Regular' }}
+        placeholderTextColor={colors.textFaint} style={{ backgroundColor: '#081F5B', borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 14, padding: 16, color: colors.text, fontSize: 16, fontFamily: 'Ubuntu_400Regular' }}
         {...props} />
     </View>;
   return <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.void }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -68,9 +68,9 @@ export default function RegisterScreen() {
       <ScalePressable onPress={() => step === 'profile' || step === 'code' ? begin() : router.replace('/login')} style={{ paddingVertical: 12 }}>
         <Text style={{ color: colors.accent, fontFamily: 'Ubuntu_500Medium' }}>← {step === 'code' || step === 'profile' ? 'Change email' : 'Sign in'}</Text>
       </ScalePressable>
-      <Text style={{ fontFamily: 'Ubuntu_500Medium', color: colors.accent, fontSize: 12, letterSpacing: 1.5, marginTop: 28 }}>B SQUARE  ·  MEMBERSHIP</Text>
-      <Text style={{ fontFamily: 'Ubuntu_700Bold', color: colors.text, fontSize: 33, lineHeight: 41, marginTop: 10 }}>
-        {step === 'email' ? 'Start with your email.' : step === 'code' ? 'Check your inbox.' : step === 'profile' ? 'Tell us about your business.' : 'Application received.'}
+      <Text style={{ fontFamily: 'Ubuntu_500Medium', color: colors.accent, fontSize: 12, letterSpacing: 2, marginTop: 45 }}>B SQUARE  ·  MEMBERSHIP</Text>
+      <Text style={{ fontFamily: 'Ubuntu_700Bold', color: colors.text, fontSize: 40, lineHeight: 47, marginTop: 10 }}>
+        {step === 'email' ? 'Start with your email.' : step === 'code' ? 'Check your inbox.' : step === 'profile' ? 'Tell us what you do.' : 'Application received.'}
       </Text>
       <Text style={{ fontFamily: 'Ubuntu_400Regular', color: colors.textDim, fontSize: 15, lineHeight: 24, marginTop: 12, marginBottom: 30 }}>
         {step === 'email' ? 'Verify your email before creating your B Square membership application.' : step === 'code' ? 'Enter the 6-digit code we sent to your email. It expires in 5 minutes.' : step === 'profile' ? 'Your email is verified. Complete your application using the details below.' : 'Your email is verified and your application has been submitted.'}
@@ -80,7 +80,7 @@ export default function RegisterScreen() {
         <TextInput accessibilityLabel="New member email address" value={email}
           onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} autoComplete="email" textContentType="emailAddress"
           keyboardType="email-address" placeholder="you@company.com" onFocus={reveal} returnKeyType="done" onSubmitEditing={sendCode}
-          style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 14, padding: 16, color: colors.text, fontFamily: 'Ubuntu_400Regular', fontSize: 16, marginBottom: 20 }} />
+          placeholderTextColor={colors.textFaint} style={{ backgroundColor: '#081F5B', borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 14, padding: 16, color: colors.text, fontFamily: 'Ubuntu_400Regular', fontSize: 16, marginBottom: 20 }} />
         <PrimaryButton label={busy ? 'Sending...' : 'Send verification code'} disabled={!validEmail || busy || !isConfigured()} onPress={sendCode} />
       </> : null}
       {step === 'code' ? <>
@@ -88,7 +88,7 @@ export default function RegisterScreen() {
         <TextInput accessibilityLabel="Six-digit email verification code" value={code}
           onChangeText={v => setCode(v.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad"
           autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={6} placeholder="000000" onFocus={reveal}
-          style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 14, padding: 18, color: colors.text, fontFamily: 'Ubuntu_700Bold', fontSize: 25, letterSpacing: 7, textAlign: 'center', marginBottom: 18 }} />
+          placeholderTextColor={colors.textFaint} style={{ backgroundColor: '#081F5B', borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 14, padding: 18, color: colors.text, fontFamily: 'Ubuntu_700Bold', fontSize: 25, letterSpacing: 7, textAlign: 'center', marginBottom: 18 }} />
         <PrimaryButton label={busy ? 'Verifying...' : 'Verify email'} disabled={busy || code.length !== 6} onPress={verifyCode} />
         <ScalePressable onPress={sendCode} disabled={busy} style={{ alignItems: 'center', paddingVertical: 22 }}>
           <Text style={{ color: colors.accent, fontFamily: 'Ubuntu_500Medium' }}>Resend code (after 60 seconds)</Text>
@@ -106,7 +106,7 @@ export default function RegisterScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 21 }} keyboardShouldPersistTaps="handled">
           {INDUSTRIES.map(industry => <ScalePressable key={industry} onPress={() => setData(prev => ({ ...prev, industry }))}
             style={{ borderRadius: 18, paddingHorizontal: 15, paddingVertical: 10, marginRight: 8, backgroundColor: data.industry === industry ? colors.accent : colors.voidAlt }}>
-            <Text style={{ color: data.industry === industry ? colors.text : colors.textDim, fontFamily: 'Ubuntu_500Medium', fontSize: 13 }}>{industry}</Text>
+            <Text style={{ color: data.industry === industry ? colors.onAccent : colors.textDim, fontFamily: 'Ubuntu_500Medium', fontSize: 13 }}>{industry}</Text>
           </ScalePressable>)}
         </ScrollView>
         {field('LinkedIn profile URL', 'linkedinUrl', { keyboardType: 'url', autoCapitalize: 'none' })}

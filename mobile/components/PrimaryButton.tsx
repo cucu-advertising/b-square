@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Text, View } from 'react-native';
+import { ArrowRight } from 'lucide-react-native';
 import { ScalePressable } from './AnimatedUI';
 import { useThemeColors } from '../lib/theme';
 
@@ -10,51 +10,19 @@ type PrimaryButtonProps = {
   fullWidth?: boolean;
 };
 
-export function PrimaryButton({
-  label,
-  onPress,
-  disabled = false,
-  fullWidth = true,
-}: PrimaryButtonProps) {
+export function PrimaryButton({ label, onPress, disabled = false, fullWidth = true }: PrimaryButtonProps) {
   const colors = useThemeColors();
-
-  return (
-    <ScalePressable
-      onPress={onPress}
-      disabled={disabled}
-      style={[styles.wrapper, fullWidth && styles.fullWidth, disabled && styles.disabled]}
-    >
-      <LinearGradient
-        colors={[colors.gradientStart, colors.gradientEnd]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
-      >
-        <Text style={[styles.label, { color: colors.onAccent }]}>{label}</Text>
-      </LinearGradient>
-    </ScalePressable>
-  );
+  return <ScalePressable
+    accessibilityRole="button"
+    accessibilityLabel={label}
+    accessibilityState={{ disabled }}
+    onPress={onPress}
+    disabled={disabled}
+    style={{ width: fullWidth ? '100%' : undefined, alignSelf: fullWidth ? 'stretch' : 'flex-start', minHeight: 54, backgroundColor: colors.accent, borderRadius: 13, paddingVertical: 16, paddingHorizontal: 19, opacity: disabled ? 0.46 : 1 }}
+  >
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+      <Text style={{ color: colors.onAccent, fontFamily: 'Ubuntu_700Bold', fontSize: 15, flexShrink: 1, textAlign: 'center' }}>{label}</Text>
+      <ArrowRight size={17} color={colors.onAccent} strokeWidth={2.2} />
+    </View>
+  </ScalePressable>;
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    borderRadius: 999,
-    overflow: 'hidden',
-  },
-  fullWidth: {
-    width: '100%',
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  gradient: {
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  label: {
-    fontFamily: 'Ubuntu_700Bold',
-    fontSize: 16,
-  },
-});
