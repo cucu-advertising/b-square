@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Check, ArrowUpRight, X } from 'lucide-react-native';
+import { Check, X } from 'lucide-react-native';
 import { api, RequestItem } from '../../lib/api';
 import { useThemeColors } from '../../lib/theme';
 import { Avatar, Eyebrow } from '../../components/BrandUI';
@@ -71,7 +71,7 @@ export default function RequestsScreen() {
             <ScalePressable disabled={busy !== null} onPress={() => void act(request.request_id, true)} style={{ flex: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center', backgroundColor: c.accent, flexDirection: 'row', justifyContent: 'center', gap: 7 }}>
               <Check size={16} color={c.onAccent} /><Text style={{ fontFamily: 'Ubuntu_700Bold', color: c.onAccent }}>Accept</Text>
             </ScalePressable>
-          </View> : <Text style={{ color: c.textDim, fontFamily: 'Ubuntu_400Regular', fontSize: 13, marginTop: 12 }}>Awaiting a response <ArrowUpRight size={12} color={c.accent} /></Text>}
+          </View> : <Text style={{ color: c.textDim, fontFamily: 'Ubuntu_400Regular', fontSize: 13, marginTop: 12 }}>Awaiting a response</Text>}
         </View>)}
       </ScrollView>}
   </View>;

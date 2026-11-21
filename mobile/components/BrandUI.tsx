@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Text, View } from 'react-native';
 import { ShieldCheck } from 'lucide-react-native';
 import { useThemeColors } from '../lib/theme';
