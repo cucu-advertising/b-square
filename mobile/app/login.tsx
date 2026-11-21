@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useSession } from '../lib/session';
 import { useThemeColors } from '../lib/theme';
 import { isConfigured } from '../lib/api';
+import { LinkedInButton } from '../components/LinkedInButton';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { BrandMark, Eyebrow } from '../components/BrandUI';
 import { ScalePressable } from '../components/AnimatedUI';
@@ -40,6 +41,7 @@ export default function LoginScreen() {
         <PrimaryButton label={busy ? 'Signing in...' : 'Sign in'} disabled={busy || !isConfigured() || !email.includes('@') || !password} onPress={submit} />
         <ScalePressable onPress={() => router.push('/forgot-password')} style={{ alignItems: 'center', padding: 17 }}><Text style={{ color: c.accent, fontFamily: 'Ubuntu_500Medium' }}>Forgot password?</Text></ScalePressable>
       </> : <PrimaryButton label="Continue with email code" onPress={() => router.push('/email-sign-in')} />}
+      <View style={{ marginTop: 13 }}><LinkedInButton label="Continue with LinkedIn" /></View>
       {!isConfigured() ? <Text style={{ color: '#FFB6B6', fontSize: 12, marginTop: 16 }}>The Bsquare API URL has not been configured.</Text> : null}
       {error ? <Text style={{ color: '#FFB6B6', fontSize: 13, marginTop: 16 }}>{error}</Text> : null}
       <ScalePressable onPress={() => setShowPassword(v => !v)} style={{ borderRadius: 13, borderColor: c.accent, borderWidth: 1, paddingVertical: 16, alignItems: 'center', marginTop: 14 }}>
