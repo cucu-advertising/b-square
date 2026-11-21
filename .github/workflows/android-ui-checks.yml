@@ -34,3 +34,5 @@ jobs:
         run: npx tsc --noEmit
       - name: Bundle production Android JavaScript assets
         run: npx expo export --platform android --output-dir /tmp/bsquare-android-export
+      - name: Bundle browser preview assets
+        run: npx expo export --platform web --output-dir /tmp/bsquare-web-export

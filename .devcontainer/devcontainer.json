@@ -1,0 +1,22 @@
+{
+  "name": "Bsquare · Browser Test",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "forwardPorts": [
+    8081
+  ],
+  "portsAttributes": {
+    "8081": {
+      "label": "Bsquare Expo Web",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "postCreateCommand": "cd mobile && npm ci",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}
