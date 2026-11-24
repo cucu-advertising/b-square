@@ -195,6 +195,43 @@ def test_work_email_linkedin_and_admission_end_to_end(monkeypatch):
                 ticket3 = parse_qs(urlparse(callback3.headers["location"]).query)["ticket"][0]
                 r = await client.post("/api/v1/auth/linkedin/complete", json={"ticket": ticket3})
                 assert r.status_code == 403, "Rejected LinkedIn applicant must remain blocked"
+
+                # Older app sends a verified email OTP with verificationType=linkedin,
+                # a profile URL, and no founder role. It may apply but can never
+                # obtain tokens before independent founder review.
+                legacy_email = "legacy@company.example.com"
+                r = await client.post("/api/v1/auth/signup-email/request", json={"email": legacy_email})
+                assert r.status_code == 200, r.text
+                legacy_code = captured[-1][1]
+                r = await client.post("/api/v1/auth/signup-email/verify", json={
+                    "email": legacy_email, "code": legacy_code,
+                })
+                assert r.status_code == 200, r.text
+                legacy_payload = {
+                    "name": "Legacy Business Owner",
+                    "email": legacy_email,
+                    "password": "safe-test-password-legacy",
+                    "businessName": "Legacy Test Company",
+                    "city": "Hyderabad",
+                    "industry": "",
+                    "linkedinUrl": "https://www.linkedin.com/in/example/",
+                    "verificationType": "linkedin",
+                    "verificationToken": r.json()["verificationToken"],
+                }
+                r = await client.post("/api/v1/auth/register-verified", json=legacy_payload)
+                assert r.status_code == 200, r.text
+                assert r.json()["status"] == "pending"
+                assert "accessToken" not in r.json()
+                legacy_doc = await db.users.find_one({"email": legacy_email})
+                assert legacy_doc["membershipStatus"] == "pending"
+                assert legacy_doc["verificationType"] == "legacy_email_otp"
+                assert legacy_doc["roleTitle"] == "Legacy applicant - founder role not supplied"
+                r = await client.post("/api/v1/auth/register-verified", json=legacy_payload)
+                assert r.status_code == 401, "Legacy verified ticket must be single-use"
+                r = await client.post("/api/v1/auth/login", json={
+                    "email": legacy_email, "password": legacy_payload["password"]
+                })
+                assert r.status_code == 403, "Legacy applicant must be manually approved"
         finally:
             await close_db()
 
