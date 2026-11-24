@@ -151,6 +151,20 @@ def test_work_email_linkedin_and_admission_end_to_end(monkeypatch):
                     membershipStatus="approved", verificationStatus="approved",
                 )
                 await db.users.insert_one(admin_doc)
+                # Preserve legacy behavior for passwordless and malformed-hash
+                # accounts: invalid password login returns 401, not HTTP 500.
+                r = await client.post("/api/v1/auth/login", json={
+                    "email": admin_email, "password": "does-not-work",
+                })
+                assert r.status_code == 401, "Passwordless account login must fail gracefully"
+                await db.users.update_one(
+                    {"_id": admin_doc["_id"]},
+                    {"$set": {"passwordHash": "malformed-password-hash"}},
+                )
+                r = await client.post("/api/v1/auth/login", json={
+                    "email": admin_email, "password": "does-not-work",
+                })
+                assert r.status_code == 401, "Malformed password hash must fail gracefully"
                 admin_token = create_access_token(str(admin_doc["_id"]))
                 headers = {"Authorization": f"Bearer {admin_token}"}
                 r = await client.get("/api/v1/admin/admission/pending", headers=headers)

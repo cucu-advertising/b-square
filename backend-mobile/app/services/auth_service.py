@@ -302,7 +302,14 @@ class AuthService:
         user = await self.users.find_by_email(payload.email.lower())
         if not user:
             raise AppError("This email doesn't exist", 401)
-        if not user.get("passwordHash") or not verify_password(payload.password, user["passwordHash"]):
+        password_hash = user.get("passwordHash")
+        if not isinstance(password_hash, str) or not password_hash:
+            raise AppError("This account uses a different sign-in method", 401)
+        try:
+            password_valid = verify_password(payload.password, password_hash)
+        except (ValueError, TypeError):
+            raise AppError("Password sign-in is unavailable for this account", 401)
+        if not password_valid:
             raise AppError("The password is incorrect", 401)
 
         tokens = await self._issue_tokens(user)
