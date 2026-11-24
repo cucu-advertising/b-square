@@ -90,7 +90,7 @@ async def exchange_code_for_claims(code: str) -> dict[str, Any]:
             public_key,
             algorithms=["RS256"],
             audience=settings.linkedin_client_id,
-            issuer="https://www.linkedin.com",
+            issuer="https://www.linkedin.com/oauth",
         )
     except AppError:
         raise

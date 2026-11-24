@@ -1,7 +1,7 @@
 """Check LinkedIn OIDC ID tokens against LinkedIn's actual discovery issuer.
 
 The LinkedIn OpenID discovery document identifies
-https://www.linkedin.com as issuer, not /oauth. This test prevents
+https://www.linkedin.com/oauth as issuer. This test prevents
 a valid production sign-in being rejected by issuer mismatch.
 """
 import asyncio
@@ -71,7 +71,7 @@ def _fake_provider(monkeypatch, issuer: str):
 
 
 def test_real_linkedin_oidc_issuer_is_accepted(monkeypatch):
-    _fake_provider(monkeypatch, "https://www.linkedin.com")
+    _fake_provider(monkeypatch, "https://www.linkedin.com/oauth")
     claims = asyncio.run(linkedin_oauth.exchange_code_for_claims("test-code"))
     assert claims["sub"] == "test-subject"
     assert claims["email_verified"] is True
@@ -85,3 +85,13 @@ def test_wrong_linkedin_oidc_issuer_is_rejected(monkeypatch):
         assert exc.status_code == 401
     else:
         raise AssertionError("An unexpected OIDC issuer was accepted")
+
+
+def test_old_incorrect_linkedin_issuer_is_rejected(monkeypatch):
+    _fake_provider(monkeypatch, "https://www.linkedin.com")
+    try:
+        asyncio.run(linkedin_oauth.exchange_code_for_claims("test-code"))
+    except AppError as exc:
+        assert exc.status_code == 401
+    else:
+        raise AssertionError("Token issuer without /oauth was accepted")
