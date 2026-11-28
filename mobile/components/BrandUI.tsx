@@ -3,10 +3,14 @@ import { Image, Text, View } from 'react-native';
 import { ShieldCheck } from 'lucide-react-native';
 import { useThemeColors } from '../lib/theme';
 
+const brandMarkImage = require('../assets/brand-mark.png');
+// brand-mark.png has transparent padding around the glyph; scale it so the "B" itself fills `size`.
+const BRAND_MARK_GLYPH_RATIO = 0.57;
+
 export function BrandMark({ size = 34 }: { size?: number }) {
-  const c = useThemeColors();
-  return <View accessibilityLabel="B Square" style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: c.accent, borderTopRightRadius: size * 0.48, borderBottomLeftRadius: size * 0.42, borderBottomRightRadius: size * 0.43 }}>
-    <Text style={{ color: c.accent, fontFamily: 'Ubuntu_700Bold', fontSize: size * 0.68, lineHeight: size * 0.83 }}>B</Text>
+  const imageSize = size / BRAND_MARK_GLYPH_RATIO;
+  return <View accessible accessibilityRole="image" accessibilityLabel="B Square" style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+    <Image source={brandMarkImage} style={{ width: imageSize, height: imageSize }} resizeMode="contain" />
   </View>;
 }
 
