@@ -81,4 +81,4 @@ BUSINESS_INTERESTS = [
     "Marketing & PR",
 ]
 
-VERIFICATION_TYPES = ["din", "linkedin", "succession"]
+VERIFICATION_TYPES = ["din", "linkedin", "succession", "work_email"]

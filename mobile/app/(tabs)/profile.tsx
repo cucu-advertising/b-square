@@ -19,6 +19,14 @@ export default function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [deletePassword, setDeletePassword] = useState('');
+  const [canReview, setCanReview] = useState(false);
+  useEffect(() => {
+    if (!user?.id) { setCanReview(false); return; }
+    let active = true;
+    api.reviewerAccess().then(r => { if (active) setCanReview(r.canReview); })
+      .catch(() => { if (active) setCanReview(false); });
+    return () => { active = false; };
+  }, [user?.id]);
   useEffect(() => { setName(user?.name || ''); setBio(user?.bio || ''); }, [user?.id]);
   const save = async () => {
     if (saving) return;
@@ -44,7 +52,7 @@ export default function ProfileScreen() {
   return <ScrollView style={{ flex: 1, backgroundColor: c.void }} contentContainerStyle={{ paddingBottom: 55 }} keyboardShouldPersistTaps="handled">
     <SectionHeading title="My profile." subtitle="Your identity in the Bsquare community." />
     <View style={{ marginHorizontal: 21, backgroundColor: c.surface, borderWidth: 1, borderColor: c.glassBorder, borderRadius: 20, padding: 23, marginBottom: 25, alignItems: 'center' }}>
-      <Avatar name={user?.name || 'B Square'} size={99} />
+      <Avatar name={user?.name || 'B Square'} photo={user?.profilePhoto} size={99} />
       <Text style={{ fontFamily: 'Ubuntu_700Bold', color: c.text, fontSize: 24, marginTop: 17 }}>{user?.name || 'B Square member'}</Text>
       <Text style={{ fontFamily: 'Ubuntu_400Regular', color: c.textDim, fontSize: 13, marginTop: 7, textAlign: 'center' }}>{user?.company_name || user?.industry || 'Your business'}</Text>
       {user?.verification_status === 'approved' ? <View style={{ marginTop: 17 }}><VerifiedPill label="Verified member" /></View> : null}
@@ -60,6 +68,11 @@ export default function ProfileScreen() {
       <PrimaryButton label={saving ? 'Saving...' : 'Save changes'} disabled={saving || !name.trim()} onPress={save} />
       <View style={{ height: 1, backgroundColor: c.glassBorder, marginVertical: 30 }} />
       <Eyebrow>ACCOUNT & SAFETY</Eyebrow>
+      {canReview ? <ScalePressable accessibilityRole="button" onPress={() => router.push('/admin/admission')} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 18, gap: 11 }}>
+        <ShieldCheck color={c.accent} size={19} />
+        <Text style={{ flex: 1, color: c.text, fontFamily: 'Ubuntu_700Bold', fontSize: 15 }}>Review founder applications</Text>
+        <ChevronRight color={c.accent} size={18} />
+      </ScalePressable> : null}
       <ScalePressable accessibilityRole="button" onPress={() => router.push('/blocked')} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 18, gap: 11 }}>
         <ShieldCheck color={c.accent} size={19} />
         <Text style={{ flex: 1, color: c.text, fontFamily: 'Ubuntu_500Medium', fontSize: 15 }}>Blocked members</Text>

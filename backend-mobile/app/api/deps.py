@@ -1,5 +1,7 @@
 from typing import Annotated
 
+from bson import ObjectId
+
 from fastapi import Depends, Header
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -106,6 +108,11 @@ async def get_current_user_id(
         raise AppError(str(exc), 401) from exc
 
     subject = payload.get("sub")
-    if not subject:
+    if not subject or not ObjectId.is_valid(subject):
         raise AppError("Invalid token payload", 401)
+    member = await get_db().users.find_one({"_id": ObjectId(subject)}, {"membershipStatus": 1, "verificationStatus": 1, "isActive": 1, "isBlocked": 1})
+    if not member:
+        raise AppError("Account unavailable", 401)
+    if member.get("membershipStatus") in ("pending", "rejected", "suspended") or member.get("verificationStatus") in ("pending", "rejected", "suspended") or member.get("isActive") is False or member.get("isBlocked") is True:
+        raise AppError("Membership not approved", 403)
     return subject

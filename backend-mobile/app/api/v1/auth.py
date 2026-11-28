@@ -1,14 +1,18 @@
 import secrets
 from datetime import datetime, timezone
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Form, Request
-from pydantic import Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
+from pymongo.errors import DuplicateKeyError
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.api.deps import get_auth_service, get_current_user_id
 from app.core.config import get_settings
 from app.core.exceptions import AppError
+from app.core.security import hash_password
+from app.models.user import new_user_document
+from app.services.admission import is_work_email
 from app.schemas.auth import (
     AppleExchangeRequest,
     DeleteAccountRequest,
@@ -33,20 +37,56 @@ async def register(
     payload: RegisterRequest,
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> dict:
-    user, tokens = await auth_service.register(payload)
-    return {"user": user.model_dump(by_alias=True), **tokens.model_dump(by_alias=True)}
+    # Old unrestricted endpoint cannot bypass email OTP and founder review.
+    raise AppError("Verify your company email with a signup code first", 403)
 
 
 class VerifiedRegisterRequest(RegisterRequest):
     verification_token: str = Field(alias="verificationToken", min_length=32, max_length=256)
 
 
+class LegacyVerifiedRegisterRequest(BaseModel):
+    """Old mobile signup client: email OTP followed by LinkedIn URL (NOT OAuth).
+
+    The legacy client cannot provide an independently checked founder role.
+    Store its verified-email application as unverified and pending manual review.
+    No tokens are returned until that review has approved the member.
+    """
+    name: str = Field(min_length=1, max_length=150)
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+    business_name: str = Field(alias="businessName", min_length=2, max_length=150)
+    city: str = Field(min_length=2, max_length=120)
+    industry: str = ""
+    linkedin_url: str = Field(alias="linkedinUrl", min_length=10, max_length=300)
+    verification_type: Literal["linkedin"] = Field(alias="verificationType")
+    verification_token: str = Field(alias="verificationToken", min_length=32, max_length=256)
+
+    model_config = {"populate_by_name": True, "extra": "forbid"}
+
+    @field_validator("email")
+    @classmethod
+    def require_company_email(cls, value: str) -> str:
+        if not is_work_email(str(value)):
+            raise ValueError("A company email is required")
+        return value
+
+    @field_validator("linkedin_url")
+    @classmethod
+    def require_profile_link(cls, value: str) -> str:
+        if "linkedin.com/in/" not in value.lower():
+            raise ValueError("A LinkedIn profile URL is required")
+        return value
+
+
 @router.post("/register-verified")
 async def register_verified(
-    payload: VerifiedRegisterRequest,
+    payload: VerifiedRegisterRequest | LegacyVerifiedRegisterRequest,
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> dict:
-    """A fresh, single-use verification ticket must match the registration email."""
+    """Require one-use email verification; do not grant access pre-approval."""
+    if isinstance(payload, VerifiedRegisterRequest) and payload.verification_type != "work_email":
+        raise AppError("Company email OTP can only register a work-email applicant", 422)
     email = str(payload.email).strip().lower()
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     token_digest = signup_digest(email, "ticket", payload.verification_token)
@@ -55,8 +95,32 @@ async def register_verified(
     })
     if ticket is None:
         raise AppError("Please verify your email again to continue registration", 401)
-    user, tokens = await auth_service.register(RegisterRequest.model_validate(payload.model_dump(by_alias=True)))
-    return {"user": user.model_dump(by_alias=True), **tokens.model_dump(by_alias=True)}
+
+    if isinstance(payload, LegacyVerifiedRegisterRequest):
+        if await auth_service.users.find_by_email(email):
+            raise AppError("An account with this email already exists", 409)
+        parts = payload.name.strip().split(None, 1)
+        unverified_role = "Legacy applicant - founder role not supplied"
+        document = new_user_document(
+            firstName=parts[0], lastName=parts[1] if len(parts) > 1 else "",
+            email=email, passwordHash=hash_password(payload.password),
+            businessName=payload.business_name.strip(),
+            companyName=payload.business_name.strip(),
+            city=payload.city.strip(), industry=payload.industry.strip(),
+            linkedinUrl=payload.linkedin_url.strip(),
+            verificationType="legacy_email_otp",
+            verificationStatus="pending", membershipStatus="pending",
+            role=unverified_role, roleTitle=unverified_role,
+            founderName=payload.name.strip(),
+            emailVerifiedAt=now,
+        )
+        try:
+            await auth_service.users.create(document)
+        except DuplicateKeyError as exc:
+            raise AppError("An account with this email already exists", 409) from exc
+    else:
+        await auth_service.register(RegisterRequest.model_validate(payload.model_dump(by_alias=True)))
+    return {"status": "pending", "message": "Email verified. Founder eligibility is awaiting review."}
 
 
 @router.post("/login")
@@ -149,8 +213,7 @@ async def account_deletion_info() -> HTMLResponse:
 
 @router.get("/linkedin/authorize-url")
 async def linkedin_authorize_url() -> dict:
-    state = secrets.token_urlsafe(16)
-    return {"url": linkedin_oauth.build_authorization_url(state), "state": state}
+    raise AppError("Use the secure /api/v1/auth/linkedin/start endpoint", 410)
 
 
 @router.get("/linkedin/callback")
@@ -160,13 +223,7 @@ async def linkedin_callback(code: str = "", state: str = "", error: str = "") ->
     We hand off to the app via its custom URL scheme, carrying the code
     (or error) along so the app can complete the exchange itself.
     """
-    settings = get_settings()
-    scheme = settings.linkedin_app_redirect_scheme
-    if error:
-        return RedirectResponse(url=f"{scheme}://linkedin-callback?error={error}")
-    return RedirectResponse(
-        url=f"{scheme}://linkedin-callback?code={code}&state={state}"
-    )
+    raise AppError("Use the secure /api/v1/auth/linkedin/callback-v2 endpoint", 410)
 
 
 @router.post("/linkedin/exchange")
@@ -174,13 +231,7 @@ async def linkedin_exchange(
     payload: LinkedInExchangeRequest,
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> dict:
-    claims = await linkedin_oauth.exchange_code_for_claims(payload.code)
-    user, tokens, is_new_user = await auth_service.linkedin_auth(claims)
-    return {
-        "user": user.model_dump(by_alias=True),
-        "isNewUser": is_new_user,
-        **tokens.model_dump(by_alias=True),
-    }
+    raise AppError("Use the secure one-time LinkedIn verification flow", 410)
 
 
 @router.post("/apple/exchange")

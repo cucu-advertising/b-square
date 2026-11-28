@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScalePressable } from '../components/AnimatedUI';
 import { api, isConfigured } from '../lib/api';
+import { LinkedInButton } from '../components/LinkedInButton';
 
 const INDUSTRIES = ['IT Services', 'Textiles & Garments', 'Food & Beverages', 'Pharmaceuticals', 'Logistics & Transport', 'Manufacturing', 'Real Estate', 'Finance & Banking', 'Healthcare', 'Education', 'Retail & Wholesale', 'Construction', 'Agriculture', 'Chemicals', 'Automotive', 'Other'];
 
@@ -17,7 +18,7 @@ export default function RegisterScreen() {
   const [code, setCode] = useState('');
   const [verificationToken, setVerificationToken] = useState('');
   const [lastSentAt, setLastSentAt] = useState(0);
-  const [data, setData] = useState({ name: '', businessName: '', password: '', city: '', industry: '', linkedinUrl: '' });
+  const [data, setData] = useState({ name: '', businessName: '', password: '', city: '', industry: '', roleTitle: '', linkedinUrl: '' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const cleanEmail = email.trim().toLowerCase();
@@ -49,7 +50,7 @@ export default function RegisterScreen() {
     if (busy || !verificationToken) return;
     setBusy(true); setError('');
     try {
-      await api.registerVerified({ ...data, email: cleanEmail, verificationToken, verificationType: 'linkedin' });
+      await api.registerVerified({ ...data, email: cleanEmail, verificationToken, verificationType: 'work_email' });
       setStep('done');
     } catch (e) { setError(e instanceof Error ? e.message : 'Unable to submit application.'); }
     finally { setBusy(false); }
@@ -73,13 +74,15 @@ export default function RegisterScreen() {
         {step === 'email' ? 'Start with your email.' : step === 'code' ? 'Check your inbox.' : step === 'profile' ? 'Tell us what you do.' : 'Application received.'}
       </Text>
       <Text style={{ fontFamily: 'Ubuntu_400Regular', color: colors.textDim, fontSize: 15, lineHeight: 24, marginTop: 12, marginBottom: 30 }}>
-        {step === 'email' ? 'Verify your email before creating your B Square membership application.' : step === 'code' ? 'Enter the 6-digit code we sent to your email. It expires in 5 minutes.' : step === 'profile' ? 'Your email is verified. Complete your application using the details below.' : 'Your email is verified and your application has been submitted.'}
+        {step === 'email' ? 'Enter your work email. We will send you a six-digit verification code.' : step === 'code' ? 'Enter the 6-digit code we sent to your email. It expires in 5 minutes.' : step === 'profile' ? 'Your email is verified. Complete your application using the details below.' : 'Your email is verified. Your founder application is awaiting review.'}
       </Text>
       {step === 'email' ? <>
-        <Text style={{ color: colors.textDim, fontFamily: 'Ubuntu_500Medium', marginBottom: 9 }}>Email address</Text>
+        <LinkedInButton label="Continue with LinkedIn" />
+        <Text style={{ color: colors.textDim, fontFamily: 'Ubuntu_500Medium', textAlign: 'center', marginVertical: 22, fontSize: 12 }}>OR USE YOUR WORK EMAIL</Text>
+        <Text style={{ color: colors.textDim, fontFamily: 'Ubuntu_500Medium', marginBottom: 9 }}>Work email address</Text>
         <TextInput accessibilityLabel="New member email address" value={email}
           onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} autoComplete="email" textContentType="emailAddress"
-          keyboardType="email-address" placeholder="you@company.com" onFocus={reveal} returnKeyType="done" onSubmitEditing={sendCode}
+          keyboardType="email-address" placeholder="you@yourcompany.com" onFocus={reveal} returnKeyType="done" onSubmitEditing={sendCode}
           placeholderTextColor={colors.textFaint} style={{ backgroundColor: '#081F5B', borderWidth: 1, borderColor: colors.glassBorder, borderRadius: 14, padding: 16, color: colors.text, fontFamily: 'Ubuntu_400Regular', fontSize: 16, marginBottom: 20 }} />
         <PrimaryButton label={busy ? 'Sending...' : 'Send verification code'} disabled={!validEmail || busy || !isConfigured()} onPress={sendCode} />
       </> : null}
@@ -102,6 +105,7 @@ export default function RegisterScreen() {
         {field('Company / business name', 'businessName', { autoCapitalize: 'words' })}
         {field('Create password (8+ characters)', 'password', { secureTextEntry: true, autoCapitalize: 'none', autoComplete: 'new-password' })}
         {field('City', 'city', { autoCapitalize: 'words' })}
+        {field('Founder or business owner role', 'roleTitle', { autoCapitalize: 'words' })}
         <Text style={{ color: colors.textDim, fontFamily: 'Ubuntu_500Medium', marginBottom: 9 }}>Industry (optional)</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 21 }} keyboardShouldPersistTaps="handled">
           {INDUSTRIES.map(industry => <ScalePressable key={industry} onPress={() => setData(prev => ({ ...prev, industry }))}
@@ -109,10 +113,10 @@ export default function RegisterScreen() {
             <Text style={{ color: data.industry === industry ? colors.onAccent : colors.textDim, fontFamily: 'Ubuntu_500Medium', fontSize: 13 }}>{industry}</Text>
           </ScalePressable>)}
         </ScrollView>
-        {field('LinkedIn profile URL', 'linkedinUrl', { keyboardType: 'url', autoCapitalize: 'none' })}
-        <Text style={{ color: colors.textDim, fontSize: 12, lineHeight: 19, marginBottom: 20 }}>A LinkedIn URL does not by itself verify business ownership. Membership remains subject to B Square's review process.</Text>
+        {field('LinkedIn URL (optional, not verified)', 'linkedinUrl', { keyboardType: 'url', autoCapitalize: 'none' })}
+        <Text style={{ color: colors.textDim, fontSize: 12, lineHeight: 19, marginBottom: 20 }}>A company email code verifies mailbox access, not business ownership. Founder eligibility is independently reviewed.</Text>
         <PrimaryButton label={busy ? 'Submitting...' : 'Submit membership application'}
-          disabled={busy || !data.name.trim() || !data.businessName.trim() || data.password.length < 8 || !data.city.trim() || !data.linkedinUrl.includes('linkedin.com/in/')}
+          disabled={busy || !data.name.trim() || !data.businessName.trim() || data.password.length < 8 || !data.city.trim() || !/\b(founder|co[ -]?founder|owner|managing director|proprietor|partner)\b/i.test(data.roleTitle)}
           onPress={submit} />
       </> : null}
       {step === 'done' ? <PrimaryButton label="Back to sign in" onPress={() => router.replace('/login')} /> : null}

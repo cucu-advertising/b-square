@@ -54,6 +54,9 @@ export default function RootLayout() {
         <Stack.Screen name="forgot-password" />
         <Stack.Screen name="email-sign-in" />
         <Stack.Screen name="register" />
+        <Stack.Screen name="linkedin-callback" />
+        <Stack.Screen name="linkedin-apply" />
+        <Stack.Screen name="admin/admission" />
         <Stack.Screen name="blocked" />
         <Stack.Screen name="chat/[id]" />
         <Stack.Screen name="otp" />

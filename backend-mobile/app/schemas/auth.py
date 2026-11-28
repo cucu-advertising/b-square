@@ -3,6 +3,8 @@ from typing import Literal
 
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
+from app.services.admission import is_eligible_role, is_work_email
+
 from app.core.constants import (
     BUSINESS_GOALS,
     BUSINESS_INTERESTS,
@@ -25,7 +27,8 @@ class RegisterRequest(BaseModel):
     industry: str = ""
     city: str
     bio: str = ""
-    verification_type: Literal["din", "linkedin", "succession"] = Field(alias="verificationType")
+    verification_type: Literal["din", "linkedin", "succession", "work_email"] = Field(alias="verificationType")
+    role_title: str = Field(default="", alias="roleTitle", max_length=150)
     din_number: str | None = Field(default=None, alias="dinNumber")
     din_director_name: str | None = Field(default=None, alias="dinDirectorName")
     linkedin_url: str | None = Field(default=None, alias="linkedinUrl")
@@ -66,11 +69,16 @@ class RegisterRequest(BaseModel):
         elif self.verification_type == "linkedin":
             if not self.linkedin_url or "linkedin.com/in/" not in self.linkedin_url.lower():
                 raise ValueError("Must be a valid LinkedIn profile URL")
+        elif self.verification_type == "work_email":
+            if not is_work_email(str(self.email)):
+                raise ValueError("Use your company email, not a personal email provider")
         elif self.verification_type == "succession":
             if not self.succession_doc_note or not self.succession_doc_note.strip():
                 raise ValueError("Succession details are required")
             if self.succession_new_din and not re.fullmatch(r"\d{8}", self.succession_new_din.strip()):
                 raise ValueError("New DIN must be 8 digits if provided")
+        if not is_eligible_role(self.role_title):
+            raise ValueError("Founder, co-founder or business-owner role is required")
         return self
 
     def resolved_first_name(self) -> str:
@@ -263,6 +271,8 @@ class UserResponse(BaseModel):
     company_logo: str | None = Field(default=None, alias="companyLogo")
     business_gallery: list[str] = Field(default_factory=list, alias="businessGallery")
     verification_type: str = Field(alias="verificationType")
+    verification_status: str = Field(default="unverified", alias="verificationStatus")
+    membership_status: str = Field(default="approved", alias="membershipStatus")
     din_number: str | None = Field(default=None, alias="dinNumber")
     din_director_name: str | None = Field(default=None, alias="dinDirectorName")
     linkedin_url: str | None = Field(default=None, alias="linkedinUrl")

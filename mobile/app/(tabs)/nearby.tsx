@@ -76,7 +76,7 @@ export default function NearbyScreen() {
           <Bookmark size={18} strokeWidth={1.5} color={c.accent} />
         </View>
         <View style={{ alignItems: 'center', paddingTop: 27, paddingBottom: 23 }}>
-          <Avatar name={member.name} size={116} />
+          <Avatar name={member.name} photo={member.profilePhoto} size={116} />
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
           <Text numberOfLines={1} style={{ flex: 1, fontFamily: 'Ubuntu_700Bold', color: c.text, fontSize: 23, letterSpacing: -0.4 }}>{member.name}</Text>

@@ -53,7 +53,7 @@ export default function MemberScreen() {
     {loading ? <LoadingState /> : error && !member ? <MessageState message={error} retry={refresh} /> : member ?
       <ScrollView contentContainerStyle={{ paddingHorizontal: 23, paddingBottom: 55 }}>
         <View style={{ alignItems: 'center', paddingTop: 16, paddingBottom: 26 }}>
-          <Avatar name={member.name} size={124} />
+          <Avatar name={member.name} photo={member.profilePhoto} size={124} />
           <Text style={{ fontFamily: 'Ubuntu_700Bold', color: c.text, fontSize: 29, lineHeight: 34, marginTop: 26, textAlign: 'center' }}>{member.name}</Text>
           <Text style={{ fontFamily: 'Ubuntu_400Regular', fontSize: 14, color: c.textDim, lineHeight: 20, textAlign: 'center', marginTop: 9 }}>{member.role_title || member.headline || 'Member'}{member.company_name ? ' · ' + member.company_name : ''}</Text>
           {member.verification_status === 'approved' ? <View style={{ marginTop: 19 }}><VerifiedPill label="Verified founder" /></View> : null}

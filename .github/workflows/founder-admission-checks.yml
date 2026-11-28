@@ -1,0 +1,60 @@
+name: Bsquare Founder Admission Checks
+
+on:
+  push:
+    branches:
+      - feature/founder-admission-linkedin-work-email
+  pull_request:
+    paths:
+      - 'backend-mobile/**'
+      - 'mobile/**'
+      - '.github/workflows/founder-admission-checks.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - run: npx expo install --check
+      - run: npx tsc --noEmit
+      - run: npx expo export --platform web --output-dir /tmp/bsquare-admission-web
+
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+    env:
+      MONGODB_URI: mongodb://127.0.0.1:27017/bsquare_ci_${{ github.run_id }}
+      JWT_SECRET: ci-fake-secret-not-for-production-123456789
+      JWT_REFRESH_SECRET: ci-fake-refresh-not-for-production-123456789
+      RESEND_API_KEY: test-not-a-real-provider-key
+      BSQUARE_ADMIN_EMAILS: admin@bsquare-ci.example.com
+      BSQUARE_TEST_INTEGRATION: '1'
+      CORS_ORIGINS: http://localhost:8081
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend-mobile/requirements.txt
+      - run: python -m pip install -r backend-mobile/requirements.txt
+      - run: python -m compileall -q backend-mobile/app
+      - name: Founder admission and LinkedIn OAuth integration tests
+        working-directory: backend-mobile
+        run: python -m pytest -q tests

@@ -11,6 +11,8 @@ export type Member = {
   city?: string | null;
   distance_km?: number | null;
   verification_status?: string;
+  membership_status?: string;
+  profilePhoto?: string | null;
   connection_status?: string;
   request_id?: string | null;
   role_title?: string | null;
@@ -20,13 +22,25 @@ export type Member = {
 };
 export type RequestItem = Member & { request_id: string };
 export type Conversation = { other_id: string; other_name: string; other_industry?: string; last_message?: string; last_message_at?: string; unread_count?: number };
+export type AdmissionApplicant = {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  businessName?: string;
+  roleTitle?: string;
+  verificationType?: string;
+  linkedinUrl?: string | null;
+  emailVerifiedAt?: string;
+  createdAt?: string;
+};
 export type ChatMessage = { id: string; sender_id: string; receiver_id: string; content: string; is_system?: boolean; created_at: string };
 
 const TOKEN_KEY = 'bsquare_access_token';
 const REFRESH_KEY = 'bsquare_refresh_token';
 const baseURL = (process.env.EXPO_PUBLIC_BSQUARE_API_URL || '').replace(/\/+$/, '');
 function normalizeMember(value: any): Member {
-  return { ...value, name: value.name || [value.firstName, value.lastName].filter(Boolean).join(' '), company_name: value.companyName || value.businessName || value.company_name || null, verification_status: value.verificationStatus || value.verification_status, verification_type: value.verificationType || value.verification_type };
+  return { ...value, name: value.name || [value.firstName, value.lastName].filter(Boolean).join(' '), company_name: value.companyName || value.businessName || value.company_name || null, verification_status: value.verificationStatus || value.verification_status, membership_status: value.membershipStatus || value.membership_status, verification_type: value.verificationType || value.verification_type };
 }
 function normalizeRequest(value: any): RequestItem {
   return { ...normalizeMember(value.user || {}), request_id: value.id, status: value.status } as RequestItem;
@@ -90,13 +104,28 @@ async function request<T>(path: string, options: { method?: string; body?: unkno
       } catch { await clearSession(); }
     }
   }
-  if (!res.ok) throw new ApiError(res.status, typeof data.error === 'string' ? data.error : 'Request failed', data.code);
+  if (!res.ok) {
+    // A 404 from an older backend commonly means the new LinkedIn route
+    // has not yet been deployed; don't mislead users with "Request failed".
+    const message = res.status === 404 && path.startsWith('/auth/linkedin/')
+      ? 'LinkedIn verification is not installed on the B Square server yet.'
+      : typeof data.error === 'string' ? data.error
+      : typeof data.message === 'string' ? data.message
+      : `Request failed (HTTP ${res.status})`;
+    throw new ApiError(res.status, message, data.code);
+  }
   return data as T;
 }
 export const api = {
   linkFirebasePhone: (idToken: string) => request<{ linked: boolean }>('/firebase-phone/link', { method: 'POST', body: { idToken }, retry: false }),
   loginWithFirebasePhone: async (idToken: string) => { const r = await request<{ accessToken: string; refreshToken: string; user: Member }>('/firebase-phone/session', { method: 'POST', body: { idToken }, token: null, retry: false }); return { ...r, user: normalizeMember(r.user) }; },
   login: async (email: string, password: string) => { const r = await request<{ accessToken: string; refreshToken: string; user: Member }>('/auth/login', { method: 'POST', body: { email, password }, token: null, retry: false }); return { ...r, user: normalizeMember(r.user) }; },
+  reviewerAccess: () => request<{ canReview: boolean }>('/admin/admission/me', { retry: false }),
+  pendingAdmissions: () => request<{ applications: AdmissionApplicant[] }>('/admin/admission/pending', { retry: false }),
+  decideAdmission: (id: string, decision: 'approve' | 'reject', evidenceNote: string) => request<{ status: string }>(`/admin/admission/${encodeURIComponent(id)}/${decision}`, { method: 'POST', body: { evidenceNote }, retry: false }),
+  startLinkedIn: (platform: 'app' | 'web') => request<{url: string}>(`/auth/linkedin/start?platform=${platform}`, {token: null, retry: false}),
+  completeLinkedIn: (ticket: string) => request<any>('/auth/linkedin/complete', {method: 'POST', body: {ticket}, token: null, retry: false}),
+  applyLinkedIn: (fields: Record<string, unknown>) => request<{status: string; message: string}>('/auth/linkedin/apply', {method: 'POST', body: fields, token: null, retry: false}),
   register: (data: Record<string, unknown>) => request<{ message: string }>('/auth/register', { method: 'POST', body: data, token: null }),
   requestSignupCode: (email: string) => request<{ message: string }>('/auth/signup-email/request', { method: 'POST', body: { email: email.trim().toLowerCase() }, token: null, retry: false }),
   verifySignupCode: (email: string, code: string) => request<{ verificationToken: string }>('/auth/signup-email/verify', { method: 'POST', body: { email: email.trim().toLowerCase(), code }, token: null, retry: false }),

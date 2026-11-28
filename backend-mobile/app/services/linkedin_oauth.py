@@ -61,6 +61,16 @@ async def exchange_code_for_claims(code: str) -> dict[str, Any]:
         if not id_token:
             raise AppError("LinkedIn sign-in failed: no ID token returned", 401)
 
+        access_token = token_data.get("access_token")
+        if not access_token:
+            raise AppError("LinkedIn did not return a usable access token", 401)
+        userinfo_response = await client.get(
+            "https://api.linkedin.com/v2/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        if userinfo_response.status_code != 200:
+            raise AppError("LinkedIn user profile could not be retrieved", 401)
+        userinfo = userinfo_response.json()
         jwks_response = await client.get(_JWKS_URL)
         if jwks_response.status_code != 200:
             raise AppError("LinkedIn sign-in failed: could not verify token", 401)
@@ -87,4 +97,6 @@ async def exchange_code_for_claims(code: str) -> dict[str, Any]:
     except Exception as exc:  # jose raises several JWTError subtypes
         raise AppError("LinkedIn sign-in failed: invalid token", 401) from exc
 
-    return claims
+    if userinfo.get("sub") != claims.get("sub"):
+        raise AppError("LinkedIn identity does not match the signed token", 401)
+    return {**claims, **{key: userinfo[key] for key in ("email", "email_verified", "name", "picture") if key in userinfo}}
